@@ -1,0 +1,11 @@
+{
+  "imports": {
+    "@supabase/supabase-js": "npm:@supabase/supabase-js@2.117.2",
+    "libphonenumber-js": "npm:libphonenumber-js@1.12.13",
+    "pdf-lib": "npm:pdf-lib@1.17.1"
+  },
+  "compilerOptions": {
+    "strict": true,
+    "noImplicitOverride": true
+  }
+}

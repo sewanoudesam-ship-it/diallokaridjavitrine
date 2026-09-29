@@ -1,0 +1,7 @@
+packages: []
+
+allowBuilds:
+  esbuild: true
+  next: true
+  sharp: true
+  unrs-resolver: true

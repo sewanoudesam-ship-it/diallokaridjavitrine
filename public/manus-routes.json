@@ -1,0 +1,17 @@
+{
+  "routes": [
+    { "path": "/", "title": "Accueil" },
+    { "path": "/livre", "title": "Le livre" },
+    { "path": "/boutique", "title": "La boutique" },
+    { "path": "/boutique/:slug", "title": "Article" },
+    { "path": "/panier", "title": "Panier" },
+    { "path": "/telechargement", "title": "Accès au livre" },
+    { "path": "/a-propos", "title": "À propos" },
+    { "path": "/contact", "title": "Contact" },
+    { "path": "/confidentialite", "title": "Confidentialité" },
+    { "path": "/cgv", "title": "Conditions de vente" },
+    { "path": "/admin", "title": "Administration" },
+    { "path": "/admin/connexion", "title": "Connexion administrateur" },
+    { "path": "/admin/:section", "title": "Administration — section" }
+  ]
+}
