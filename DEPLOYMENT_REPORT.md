@@ -51,12 +51,19 @@ Les secrets suivants sont configurés côté Supabase; leurs **valeurs ne sont n
 
 La copie indépendante demandée est publiée sur la branche `main` du dépôt public [diallokaridjavitrine](https://github.com/sewanoudesam-ship-it/diallokaridjavitrine). Le fichier `.env.local`, les valeurs de secrets, `node_modules` et `.next` n’ont pas été copiés. Ce dépôt est une copie publique de source et n’est pas l’origine canonique WebDev.
 
+## Dépendances et alertes GitHub
+
+Après le message d’alerte du dépôt, Vitest a été mis à niveau vers `4.1.11` et PostCSS vers `8.5.28`; l’override pnpm force aussi cette version corrigée pour Vite et le reste de l’arbre. L’audit local final `pnpm audit` rapporte **zéro vulnérabilité connue**.
+
+Le hook de push GitHub a encore affiché « 13 vulnerabilities ». La lecture de la liste Dependabot via l’intégration GitHub a été refusée (`403 Resource not accessible by integration`), donc je ne peux pas confirmer si ce compteur distant est en cours de rafraîchissement ou s’il concerne d’autres alertes. Karidja peut vérifier le statut courant dans [Security → Dependabot alerts](https://github.com/sewanoudesam-ship-it/diallokaridjavitrine/security/dependabot); le lockfile publié est celui ayant passé `pnpm audit` à zéro.
+
 ## Vérifications effectuées
 
 - `pnpm typecheck` : réussi.
 - `pnpm lint` : réussi.
 - `pnpm test` : 6 tests réussis (téléphone CEDEAO et monnaies).
 - `pnpm build` : réussi; routes Next.js compilées.
+- `pnpm audit` : zéro vulnérabilité connue après la mise à niveau Vitest/PostCSS.
 - `.env.local` : ignoré par Git; contient seulement l’URL Supabase et la clé publique/anon frontend, jamais une clé service-role.
 - Requêtes locales, directes et via le Preview WebDev : HTTP 200; le manifeste de routes répond en 200.
 - Vérification de `download-book` avec un code de format valide mais inexistant : réponse attendue `404` (code/lien introuvable) et CORS autorisé pour le Preview. Aucun téléchargement ou enregistrement client n’a été créé par ce test.
