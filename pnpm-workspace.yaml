@@ -1,5 +1,8 @@
 packages: []
 
+overrides:
+  postcss: 8.5.28
+
 allowBuilds:
   esbuild: true
   next: true
