@@ -1,8 +1,8 @@
 # Maison Karidja V1 — Rapport de livraison
 
-**Date :** 29 septembre 2026
-**Décision d’hébergement :** Vercel exclu à la demande de Karidja.
-**État :** frontend et backend déployés et vérifiés en environnement de preview; hébergement de production permanent non configuré.
+**Date :** 30 septembre 2026
+**Hébergement choisi :** Vercel Hobby, conformément à la demande de Karidja.
+**État :** frontend et backend Supabase déployés; projet Vercel créé et relié au dépôt GitHub; premier déploiement de production en attente de déclenchement et de vérification.
 
 ## Liens
 
@@ -10,8 +10,10 @@
 - **Preview WebDev intégré :** <https://8328-ifbt84l98rks2kf81bt66-7ef9e15f.us4.manus.computer>
 - **Dépôt GitHub public :** <https://github.com/sewanoudesam-ship-it/diallokaridjavitrine>
 - **Projet Supabase :** <https://supabase.com/dashboard/project/wdvqdcluzlimyfuzpwgc>
+- **Tableau de bord Vercel :** <https://vercel.com/sewanoudesam-ship-its-projects/maison-karidja>
+- **Domaine Vercel attribué :** <https://maison-karidja.vercel.app> (aucun déploiement de production pour l’instant)
 
-Les deux URL du site sont des previews temporaires de Sandbox/WebDev; elles ne constituent pas un domaine de production permanent et peuvent cesser de fonctionner lorsque l’environnement s’arrête.
+Les deux URL du site sont des previews temporaires de Sandbox/WebDev; elles peuvent cesser de fonctionner lorsque l’environnement s’arrête. Le domaine Vercel a été attribué, mais ne sert pas encore de trafic tant que le premier déploiement de production n’a pas réussi. L’ancien alias `maison-karidja-v1.vercel.app` redirige en HTTP 307 vers le nouveau domaine.
 
 ## Livré
 
@@ -45,11 +47,18 @@ Sept fonctions Edge sont actives avec `verify_jwt=true` :
 - `mark-whatsapp-sent`
 - `revoke-delivery`
 
-Les secrets suivants sont configurés côté Supabase; leurs **valeurs ne sont ni dans Git ni dans le frontend** : `CODE_HASH_SECRET`, `CODE_ENCRYPTION_KEY_B64`, `APP_BASE_URL`. L’origine `APP_BASE_URL` pointe actuellement vers le Preview WebDev temporaire; elle devra être remplacée lors du choix d’un hôte permanent. Supabase injecte ses variables natives de projet/service aux Edge Functions.
+Les secrets suivants sont configurés côté Supabase; leurs **valeurs ne sont ni dans Git ni dans le frontend** : `CODE_HASH_SECRET`, `CODE_ENCRYPTION_KEY_B64`, `APP_BASE_URL`. Le 30 septembre, `APP_BASE_URL` a été remplacée par `https://maison-karidja.vercel.app`; les autres secrets cryptographiques sont inchangés. Supabase injecte ses variables natives de projet/service aux Edge Functions.
 
 ### GitHub
 
 La copie indépendante demandée est publiée sur la branche `main` du dépôt public [diallokaridjavitrine](https://github.com/sewanoudesam-ship-it/diallokaridjavitrine). Le fichier `.env.local`, les valeurs de secrets, `node_modules` et `.next` n’ont pas été copiés. Ce dépôt est une copie publique de source et n’est pas l’origine canonique WebDev.
+
+### Vercel
+
+- Projet `maison-karidja`, créé dans l’espace Hobby et relié à `sewanoudesam-ship-it/diallokaridjavitrine`.
+- Domaine attribué : `https://maison-karidja.vercel.app`; Vercel confirme « No Deployment » tant qu’aucun build de production n’a été lancé. L’ancien domaine `maison-karidja-v1.vercel.app` redirige en 307 vers ce domaine.
+- Variables Vercel présentes : `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` (clé publique uniquement) et `NEXT_PUBLIC_SITE_URL` pour Production.
+- `NEXT_PUBLIC_SITE_URL` a été mis à jour pour Production vers le nouveau domaine. `APP_BASE_URL` côté Supabase a aussi été remplacée; il reste à déclencher le premier build sur `main`, vérifier ses journaux et sa réponse HTTP, puis confirmer que les liens de livraison et WhatsApp utilisent cette origine.
 
 ## Dépendances et alertes GitHub
 
@@ -108,10 +117,10 @@ Aucun compte admin n’a été créé, car aucune adresse de compte de Karidja n
 4. Publier les fiches et prix réels, téléverser uniquement les images de livres/bijoux publiées par Karidja et ajouter le PDF maître du livre dans l’espace privé.
 5. À chaque paiement du livre vérifié manuellement, l’administration génère un code individuel et un lien, personnalise le PDF au nom du client et limite le téléchargement à deux fois. Le système prépare le texte WhatsApp vers le client; Karidja l’envoie manuellement et peut enregistrer l’envoi.
 
-## Ce qui reste avant la production
+## Ce qui reste pour la mise en service complète
 
-- Vercel n’a pas été utilisé. Le dépôt GitHub public seul n’héberge pas cette application Next.js dynamique.
-- Il reste à choisir un hôte de production permanent compatible avec Next.js côté serveur. Après ce choix, définir `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` et `NEXT_PUBLIC_SITE_URL` dans cet hôte, puis remplacer `APP_BASE_URL` côté Supabase par son origine HTTPS réelle (et ajouter une origine CORS explicite si nécessaire).
+- Déclencher le premier déploiement de production depuis `main`, corriger toute erreur de build éventuelle, puis vérifier `https://maison-karidja.vercel.app` en HTTP/HTTPS.
+- Confirmer que les liens de livraison sont générés sur `https://maison-karidja.vercel.app`; le secret Supabase `APP_BASE_URL` est déjà réglé sur cette origine. Les appels Edge acceptent déjà les origines `*.manus.computer` pour Preview.
 - Les tableaux de bord, commandes, liens de téléchargement et parcours WhatsApp ne peuvent être réellement mis en service pour les clients qu’après création de l’admin et saisie des données commerciales/authentiques par Karidja.
 
 Le fichier `.env.local` local est volontairement exclu des livrables Git. Ne jamais partager une clé `service_role`, un secret de chiffrement ou un mot de passe dans le chat.
