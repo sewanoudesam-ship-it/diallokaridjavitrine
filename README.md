@@ -1,6 +1,6 @@
 # Maison Karidja
 
-Application Next.js en français. Supabase héberge la base, Auth, Storage et les Edge Functions. Le dépôt GitHub public `sewanoudesam-ship-it/diallokaridjavitrine` est la source reliée au projet Vercel Hobby `maison-karidja`. Le domaine de production est `https://maison-karidja.vercel.app`; l’ancien alias avec suffixe V1 redirige vers celui-ci. Le premier déploiement de production reste à déclencher et à vérifier.
+Application Next.js en français. Supabase héberge la base, Auth, Storage et les Edge Functions. Le dépôt GitHub public `sewanoudesam-ship-it/diallokaridjavitrine` est la source reliée au projet Vercel Hobby `maison-karidja`. Le domaine de production est `https://maison-karidja.vercel.app`; le premier déploiement est réussi et l’ancien alias avec suffixe V1 redirige vers celui-ci.
 
 Aucun contenu commercial, visuel, utilisateur administrateur, prix, commande ou avis de démonstration n’est inclus. Karidja renseigne ses livres, ses bijoux, ses prix et ses images authentiques dans l’administration.
 
@@ -30,7 +30,7 @@ Ne jamais créer de variable `NEXT_PUBLIC_*` avec une clé privilégiée. Supaba
 3. Les fonctions Edge lisent le numéro WhatsApp du client enregistré et préparent le message `wa.me`; Karidja appuie elle-même sur Envoyer dans WhatsApp. Aucun envoi automatique n’est effectué.
 4. Aucun compte admin n’a été inventé ou créé. Créer le compte réel de Karidja dans Supabase Auth, vérifier son UUID, puis lui attribuer explicitement `admin` dans `public.user_roles`; il n’y a ni inscription publique ni attribution automatique.
 5. Dans l’administration, renseigner les coordonnées WhatsApp réelles, les consignes de paiement et les informations légales, puis téléverser les fiches et fichiers commerciaux authentiques. Le catalogue reste vide jusqu’à ces saisies.
-6. Le projet Vercel Hobby est créé et relié au dépôt GitHub. Son domaine `https://maison-karidja.vercel.app` est attribué et l’ancien alias redirige vers lui; vérifier le site après réussite du premier build.
+6. Le projet Vercel Hobby est créé et relié au dépôt GitHub. Le site répond sur `https://maison-karidja.vercel.app`; l’accueil et `/admin/connexion` ont été testés en HTTP 200, et l’ancien alias redirige vers le domaine professionnel.
 
 ## Commandes locales
 

@@ -2,7 +2,7 @@
 
 **Date :** 30 septembre 2026
 **Hébergement choisi :** Vercel Hobby, conformément à la demande de Karidja.
-**État :** frontend et backend Supabase déployés; projet Vercel créé et relié au dépôt GitHub; premier déploiement de production en attente de déclenchement et de vérification.
+**État :** frontend et backend Supabase déployés; projet Vercel créé et relié au dépôt GitHub; premier déploiement de production réussi et vérifié.
 
 ## Liens
 
@@ -11,9 +11,9 @@
 - **Dépôt GitHub public :** <https://github.com/sewanoudesam-ship-it/diallokaridjavitrine>
 - **Projet Supabase :** <https://supabase.com/dashboard/project/wdvqdcluzlimyfuzpwgc>
 - **Tableau de bord Vercel :** <https://vercel.com/sewanoudesam-ship-its-projects/maison-karidja>
-- **Domaine Vercel attribué :** <https://maison-karidja.vercel.app> (aucun déploiement de production pour l’instant)
+- **Domaine Vercel de production :** <https://maison-karidja.vercel.app>
 
-Les deux URL du site sont des previews temporaires de Sandbox/WebDev; elles peuvent cesser de fonctionner lorsque l’environnement s’arrête. Le domaine Vercel a été attribué, mais ne sert pas encore de trafic tant que le premier déploiement de production n’a pas réussi. L’ancien alias `maison-karidja-v1.vercel.app` redirige en HTTP 307 vers le nouveau domaine.
+Les deux URL du site sont des previews temporaires de Sandbox/WebDev; elles peuvent cesser de fonctionner lorsque l’environnement s’arrête. Le domaine Vercel est en production : l’accueil et `/admin/connexion` répondent en HTTP 200. L’ancien alias `maison-karidja-v1.vercel.app` redirige en HTTP 307 vers le nouveau domaine.
 
 ## Livré
 
@@ -56,9 +56,9 @@ La copie indépendante demandée est publiée sur la branche `main` du dépôt p
 ### Vercel
 
 - Projet `maison-karidja`, créé dans l’espace Hobby et relié à `sewanoudesam-ship-it/diallokaridjavitrine`.
-- Domaine attribué : `https://maison-karidja.vercel.app`; Vercel confirme « No Deployment » tant qu’aucun build de production n’a été lancé. L’ancien domaine `maison-karidja-v1.vercel.app` redirige en 307 vers ce domaine.
+- Domaine de production : `https://maison-karidja.vercel.app`; premier build réussi depuis `main` (commit `b8e2ed0`). L’ancien domaine `maison-karidja-v1.vercel.app` redirige en 307 vers ce domaine.
 - Variables Vercel présentes : `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` (clé publique uniquement) et `NEXT_PUBLIC_SITE_URL` pour Production.
-- `NEXT_PUBLIC_SITE_URL` a été mis à jour pour Production vers le nouveau domaine. `APP_BASE_URL` côté Supabase a aussi été remplacée; il reste à déclencher le premier build sur `main`, vérifier ses journaux et sa réponse HTTP, puis confirmer que les liens de livraison et WhatsApp utilisent cette origine.
+- `NEXT_PUBLIC_SITE_URL` a été mis à jour pour Production et `APP_BASE_URL` côté Supabase a été remplacée par le nouveau domaine. Le build est réussi; contrôles HTTP observés : `/` → 200, `/admin/connexion` → 200, ancien alias → 307 vers le domaine canonique.
 
 ## Dépendances et alertes GitHub
 
@@ -119,8 +119,8 @@ Aucun compte admin n’a été créé, car aucune adresse de compte de Karidja n
 
 ## Ce qui reste pour la mise en service complète
 
-- Déclencher le premier déploiement de production depuis `main`, corriger toute erreur de build éventuelle, puis vérifier `https://maison-karidja.vercel.app` en HTTP/HTTPS.
-- Confirmer que les liens de livraison sont générés sur `https://maison-karidja.vercel.app`; le secret Supabase `APP_BASE_URL` est déjà réglé sur cette origine. Les appels Edge acceptent déjà les origines `*.manus.computer` pour Preview.
+- **Hébergement terminé :** premier déploiement de production réussi depuis `main`; `https://maison-karidja.vercel.app/` et `/admin/connexion` répondent en HTTPS 200, l’ancien alias redirige vers le nouveau et `APP_BASE_URL` pointe déjà vers le nouveau domaine.
+- Faire le contrôle fonctionnel de bout en bout après création de l’admin et saisie par Karidja des coordonnées, instructions de paiement, informations légales et contenus authentiques; aucun compte ou article n’a été inventé.
 - Les tableaux de bord, commandes, liens de téléchargement et parcours WhatsApp ne peuvent être réellement mis en service pour les clients qu’après création de l’admin et saisie des données commerciales/authentiques par Karidja.
 
 Le fichier `.env.local` local est volontairement exclu des livrables Git. Ne jamais partager une clé `service_role`, un secret de chiffrement ou un mot de passe dans le chat.
