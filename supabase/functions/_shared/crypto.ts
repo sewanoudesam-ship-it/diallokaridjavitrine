@@ -1,7 +1,7 @@
 import { runtimeEnv } from "./runtime.ts";
 
 const encoder = new TextEncoder();
-const CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+export { generateAccessCode, isValidAccessCode } from "./access-code.ts";
 
 function toBase64(bytes: Uint8Array): string {
   let binary = "";
@@ -16,11 +16,6 @@ function fromBase64(value: string): Uint8Array {
 
 function toHex(bytes: Uint8Array): string {
   return Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("");
-}
-
-export function generateAccessCode(length = 10): string {
-  const random = crypto.getRandomValues(new Uint8Array(length));
-  return Array.from(random, (byte) => CODE_ALPHABET[byte % CODE_ALPHABET.length]).join("");
 }
 
 export function generateAccessToken(): string {

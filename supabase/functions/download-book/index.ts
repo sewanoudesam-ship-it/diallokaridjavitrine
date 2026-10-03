@@ -1,15 +1,34 @@
 import { corsHeaders, jsonResponse, optionsResponse, originAllowed, readJson, serveEdge } from "../_shared/http.ts";
-import { hashSecret } from "../_shared/crypto.ts";
+import { hashSecret, isValidAccessCode } from "../_shared/crypto.ts";
 import { getServiceClient } from "../_shared/supabase.ts";
 
-const CODE_RE = /^[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{10}$/;
 const TOKEN_RE = /^[A-Za-z0-9_-]{40,60}$/;
+
+function clientAddress(request: Request): string | null {
+  const forwarded = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
+  const address = forwarded || request.headers.get("cf-connecting-ip")?.trim() || request.headers.get("x-real-ip")?.trim();
+  return address && address.length <= 128 && !/[\s,]/.test(address) ? address : null;
+}
 
 serveEdge(async (request: Request) => {
   if (request.method === "OPTIONS") return optionsResponse(request);
   if (!originAllowed(request)) return jsonResponse(request, { error: "ORIGIN_NOT_ALLOWED" }, 403);
   if (request.method !== "POST") return jsonResponse(request, { error: "METHOD_NOT_ALLOWED" }, 405);
   try {
+    const address = clientAddress(request);
+    if (!address) throw new Error("CLIENT_IP_UNAVAILABLE");
+    const client = getServiceClient();
+    const { data: limitData, error: limitError } = await client.rpc("consume_download_rate_limit", {
+      p_client_ip_hash: await hashSecret(`download-ip:${address}`),
+    });
+    const limit = Array.isArray(limitData) ? limitData[0] : limitData;
+    if (limitError || !limit) throw new Error("RATE_LIMIT_UNAVAILABLE");
+    if (!limit.allowed) {
+      const response = jsonResponse(request, { error: "Trop de tentatives. Réessayez plus tard." }, 429);
+      response.headers.set("Retry-After", String(Math.max(1, limit.retry_after_seconds)));
+      return response;
+    }
+
     const body = await readJson(request, 4096);
     const token = typeof body.token === "string" ? body.token.trim() : "";
     const rawCode = typeof body.code === "string" ? body.code.trim().toUpperCase().replace(/[^A-Z0-9]/g, "") : "";
@@ -19,13 +38,12 @@ serveEdge(async (request: Request) => {
       if (!TOKEN_RE.test(token)) return jsonResponse(request, { error: "Lien ou code invalide, expiré ou révoqué." }, 404);
       query = query.eq("access_token_hash", await hashSecret(`token:${token}`));
     } else {
-      if (!CODE_RE.test(rawCode)) return jsonResponse(request, { error: "Lien ou code invalide, expiré ou révoqué." }, 404);
+      if (!isValidAccessCode(rawCode)) return jsonResponse(request, { error: "Lien ou code invalide, expiré ou révoqué." }, 404);
       query = query.eq("access_code_hash", await hashSecret(`code:${rawCode}`));
     }
     const { data: delivery, error: deliveryError } = await query.maybeSingle();
     if (deliveryError || !delivery || delivery.revoked_at) return jsonResponse(request, { error: "Lien ou code invalide, expiré ou révoqué." }, 404);
 
-    const client = getServiceClient();
     const { data: access, error: accessError } = await client
       .from("download_access")
       .select("id,downloaded_count,max_downloads,expires_at,revoked_at")

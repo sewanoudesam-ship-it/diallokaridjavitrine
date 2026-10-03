@@ -5,7 +5,7 @@ export default function robots(): MetadataRoute.Robots {
   const origin = getConfiguredSiteOrigin();
   if (!origin) return { rules: { userAgent: "*", disallow: "/" } };
   return {
-    rules: { userAgent: "*", allow: "/", disallow: ["/admin", "/admin/", "/telechargement", "/telechargement/", "/api/"] },
+    rules: { userAgent: "*", allow: "/" },
     sitemap: `${origin}/sitemap.xml`,
     host: origin,
   };

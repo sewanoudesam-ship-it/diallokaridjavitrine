@@ -122,7 +122,12 @@ export type Database = {
       record_whatsapp_prepared: { Args: { p_order_id: string; p_actor_id: string }; Returns: string };
       mark_whatsapp_message_sent: { Args: { p_message_id: string; p_actor_id: string }; Returns: boolean };
       consume_download_access: { Args: { p_access_id: string }; Returns: { allowed: boolean; pdf_storage_path: string | null; download_number: number }[] };
+      consume_download_rate_limit: { Args: { p_client_ip_hash: string }; Returns: { allowed: boolean; retry_after_seconds: number }[] };
       revoke_book_delivery: { Args: { p_delivery_id: string; p_actor_id: string }; Returns: boolean };
+      create_admin_invitation: { Args: { p_email: string; p_code_hash: string }; Returns: string };
+      claim_admin_access: { Args: { p_code_hash: string }; Returns: string };
+      validate_admin_access_code: { Args: { p_code_hash: string; p_email: string }; Returns: boolean };
+      consume_admin_access_code: { Args: { p_code_hash: string; p_email: string; p_user_id: string }; Returns: string };
     };
     Enums: {
       publication_status: PublicationStatus; product_availability: ProductAvailability; order_type: OrderType;

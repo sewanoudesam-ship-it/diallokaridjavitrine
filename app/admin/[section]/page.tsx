@@ -5,9 +5,11 @@ import { AdminBooksManager, type AdminBookRow } from "@/src/components/admin-boo
 import { AdminOrdersManager, type AdminOrderRecord } from "@/src/components/admin-orders-manager";
 import { AdminProductsManager, type AdminProductRow } from "@/src/components/admin-products-manager";
 import { AdminSettingsForm, type AdminSettings } from "@/src/components/admin-settings-form";
+import { AdminAccountsManager } from "@/src/components/admin-accounts-manager";
 import { AdminLogoutButton } from "@/src/components/admin-logout-button";
 import { getSupabaseServerClient } from "@/src/lib/supabase/server";
 import { publicAssetUrl } from "@/src/lib/supabase/storage-url";
+import { getAdminBasePath, toPublicAdminPath } from "@/src/lib/admin-route";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Administration — Maison Karidja", robots: { index: false, follow: false } };
@@ -17,17 +19,20 @@ const sectionTitles: Record<string, string> = {
   produits: "Produits et bijoux",
   commandes: "Commandes",
   reglages: "Réglages",
+  comptes: "Comptes administrateur",
 };
 
 export default async function AdminSectionPage({ params }: { params: Promise<{ section: string }> }) {
   const { section } = await params;
+  const adminBasePath = getAdminBasePath();
+  if (!adminBasePath) notFound();
   if (!Object.hasOwn(sectionTitles, section)) notFound();
   const client = await getSupabaseServerClient();
   if (!client) return <section className="content-page container"><h1 className="display page-title">{sectionTitles[section]}</h1><p className="notice">Cette section attend la configuration réelle de Supabase.</p></section>;
   const { data: { user } } = await client.auth.getUser();
-  if (!user) redirect("/admin/connexion");
+  if (!user) redirect(toPublicAdminPath("/admin/connexion") ?? "/");
   const { data: role, error: roleError } = await client.from("user_roles").select("role").eq("user_id", user.id).maybeSingle();
-  if (roleError || role?.role !== "admin") return <section className="content-page container"><h1 className="display page-title">Accès refusé</h1><p className="notice">Ce compte n’a pas le rôle administrateur requis.</p><Link className="text-link" href="/admin">Retour à l’administration</Link></section>;
+  if (roleError || role?.role !== "admin") return <section className="content-page container"><h1 className="display page-title">Accès refusé</h1><p className="notice">Ce compte n’a pas le rôle administrateur requis.</p><Link className="text-link" href={adminBasePath}>Retour à l’administration</Link></section>;
 
   let content;
   if (section === "livres") {
@@ -68,6 +73,8 @@ export default async function AdminSectionPage({ params }: { params: Promise<{ s
       support_email: data.support_email, legal_entity_name: data.legal_entity_name, business_address: data.business_address,
     } : null;
     content = error ? <p className="notice">Les réglages ne sont pas disponibles actuellement.</p> : <AdminSettingsForm settings={settings} />;
+  } else if (section === "comptes") {
+    content = <AdminAccountsManager />;
   } else {
     const { data: rows, error: ordersError } = await client.from("orders")
       .select("id,order_number,order_type,customer_name,phone_e164,country_iso,email,total_amount,currency,payment_status,status,created_at,paid_at")
@@ -120,11 +127,11 @@ export default async function AdminSectionPage({ params }: { params: Promise<{ s
     <section className="content-page container">
       <div className="admin-heading">
         <div><span className="eyebrow">Administration Maison Karidja</span><h1 className="display page-title">{sectionTitles[section]}</h1></div>
-        <div className="admin-user"><span className="muted">{user.email}</span><AdminLogoutButton /></div>
+        <div className="admin-user"><span className="muted">{user.email}</span><AdminLogoutButton adminBasePath={adminBasePath} /></div>
       </div>
       <nav className="admin-nav" aria-label="Sections d’administration">
-        <Link href="/admin">Vue d’ensemble</Link>
-        {Object.entries(sectionTitles).map(([key, title]) => <Link href={`/admin/${key}`} key={key} aria-current={section === key ? "page" : undefined}>{title}</Link>)}
+        <Link href={adminBasePath}>Vue d’ensemble</Link>
+        {Object.entries(sectionTitles).map(([key, title]) => <Link href={`${adminBasePath}/${key}`} key={key} aria-current={section === key ? "page" : undefined}>{title}</Link>)}
       </nav>
       {content}
     </section>
