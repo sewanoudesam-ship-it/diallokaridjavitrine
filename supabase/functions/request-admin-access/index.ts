@@ -85,7 +85,7 @@ Deno.serve(async (request: Request) => {
     if (validationError) throw new Error("ACCESS_VALIDATION_UNAVAILABLE");
     if (!valid) return genericAccepted(request);
 
-    const redirectTo = `${parsedBase.origin}/auth/confirm?flow=credential-setup`;
+    const redirectTo = `${parsedBase.origin}/auth/confirm`;
     const { data, error: inviteError } = await client.auth.admin.inviteUserByEmail(email, { redirectTo });
     if (inviteError || !data.user) return genericAccepted(request);
 

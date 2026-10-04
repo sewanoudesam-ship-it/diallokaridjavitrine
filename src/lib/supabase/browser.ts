@@ -15,7 +15,9 @@ export function getSupabaseBrowserClient(): BrowserClient | null {
     browserClient = null;
     return null;
   }
-  const client = createBrowserClient<Database>(url, anonKey);
+  const client = createBrowserClient<Database>(url, anonKey, {
+    auth: { detectSessionInUrl: false },
+  });
   browserClient = client;
   return client;
 }

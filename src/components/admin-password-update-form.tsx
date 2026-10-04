@@ -50,15 +50,20 @@ export function AdminPasswordUpdateForm({ adminBasePath }: { adminBasePath: stri
       return;
     }
     setBusy(true);
-    const { error: updateError } = await client.auth.updateUser({ password });
-    setBusy(false);
-    if (updateError) {
-      setError("Le mot de passe n’a pas pu être mis à jour. Le lien a peut-être expiré; demandez-en un nouveau.");
-      return;
+    try {
+      const { error: updateError } = await client.auth.updateUser({ password });
+      if (updateError) {
+        setError("Le mot de passe n’a pas pu être mis à jour. Le lien a peut-être expiré; demandez-en un nouveau.");
+        return;
+      }
+      setDone(true);
+      setPassword("");
+      setConfirmation("");
+    } catch {
+      setError("Une erreur temporaire a empêché la mise à jour. Réessayez ou demandez un nouveau lien.");
+    } finally {
+      setBusy(false);
     }
-    setDone(true);
-    setPassword("");
-    setConfirmation("");
   }
 
   if (done) {

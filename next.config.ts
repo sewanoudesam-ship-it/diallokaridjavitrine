@@ -15,6 +15,14 @@ const nextConfig: NextConfig = {
         ],
       },
       {
+        source: "/auth/confirm/:path*",
+        headers: [
+          { key: "Cache-Control", value: "private, no-store, max-age=0" },
+          { key: "Referrer-Policy", value: "no-referrer" },
+          { key: "X-Robots-Tag", value: "noindex, nofollow" },
+        ],
+      },
+      {
         source: "/telechargement/:path*",
         headers: [
           { key: "Cache-Control", value: "private, no-store, max-age=0" },

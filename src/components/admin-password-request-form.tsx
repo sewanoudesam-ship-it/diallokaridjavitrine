@@ -20,7 +20,8 @@ export function AdminPasswordRequestForm({ adminBasePath }: { adminBasePath: str
       return;
     }
     setBusy(true);
-    const redirectTo = `${window.location.origin}/auth/confirm?flow=credential-setup`;
+    const configuredOrigin = process.env.NEXT_PUBLIC_SITE_URL?.trim().replace(/\/+$/, "");
+    const redirectTo = `${configuredOrigin || window.location.origin}/auth/confirm`;
     try {
       const { error: resetError } = await client.auth.resetPasswordForEmail(email.trim(), { redirectTo });
       if (resetError) throw new Error("RECOVERY_REQUEST_FAILED");
