@@ -35,6 +35,14 @@ export function parseAuthCallback(search: string, hash: string): ParsedAuthCallb
   };
 }
 
+export function hasAuthCallbackCredentials(callback: ParsedAuthCallback): boolean {
+  return Boolean(callback.code || (callback.tokenHash && callback.type) || (callback.accessToken && callback.refreshToken));
+}
+
+export function isAuthCallbackPath(pathname: string): boolean {
+  return pathname === "/auth/confirm" || pathname.startsWith("/auth/confirm/");
+}
+
 /** Remove all auth credentials and provider parameters from the browser address bar. */
 export function cleanAuthCallbackUrl(pathname: string): string {
   return pathname;

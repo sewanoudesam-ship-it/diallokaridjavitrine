@@ -1,6 +1,7 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { isPublicAdminAuthPath, requiresAdminRole } from "@/src/lib/admin-auth-policy";
+import { isAuthCallbackPath } from "@/src/lib/auth-callback";
 import { getAdminBasePath, isPathWithin, toPublicAdminPath } from "@/src/lib/admin-route";
 
 const INTERNAL_ADMIN_BASE_PATH = "/admin";
@@ -9,6 +10,7 @@ function privateResponse(response: NextResponse): NextResponse {
   response.headers.set("Cache-Control", "private, no-store, max-age=0");
   response.headers.set("X-Robots-Tag", "noindex, nofollow");
   response.headers.set("Referrer-Policy", "no-referrer");
+  response.headers.set("X-Content-Type-Options", "nosniff");
   return response;
 }
 
@@ -31,6 +33,7 @@ export async function proxy(request: NextRequest) {
 
   // In production, `/admin` and every child path intentionally reveal nothing.
   if (isLegacyAdminPath && basePath !== INTERNAL_ADMIN_BASE_PATH) return hiddenNotFound();
+  if (isAuthCallbackPath(pathname)) return privateResponse(NextResponse.next({ request }));
   if (!basePath || !isPathWithin(pathname, basePath)) return NextResponse.next({ request });
 
   const internalUrl = request.nextUrl.clone();

@@ -4,6 +4,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { getSupabaseBrowserClient } from "@/src/lib/supabase/browser";
+import { AUTH_REQUEST_TIMEOUT_MS, withTimeout } from "@/src/lib/with-timeout";
 
 const configured = Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
 
@@ -23,13 +24,13 @@ export function AdminPasswordUpdateForm({ adminBasePath }: { adminBasePath: stri
     // With missing public Supabase configuration, the initial state already
     // shows the unavailable notice and leaves submission disabled.
     if (!client) return () => { active = false; };
-    void client.auth.getUser().then(({ data }) => {
+    void withTimeout(client.auth.getUser(), AUTH_REQUEST_TIMEOUT_MS).then(({ data }) => {
       if (!active) return;
       if (!data.user) setSessionError("Le lien de récupération a expiré ou a déjà été utilisé. Demandez-en un nouveau.");
       setReady(true);
     }).catch(() => {
       if (active) {
-        setSessionError("La session de récupération est invalide. Demandez un nouveau lien.");
+        setSessionError("La vérification de la session a échoué ou a pris trop de temps. Demandez un nouveau lien.");
         setReady(true);
       }
     });
@@ -55,7 +56,7 @@ export function AdminPasswordUpdateForm({ adminBasePath }: { adminBasePath: stri
     }
     setBusy(true);
     try {
-      const { error: updateError } = await client.auth.updateUser({ password });
+      const { error: updateError } = await withTimeout(client.auth.updateUser({ password }), AUTH_REQUEST_TIMEOUT_MS);
       if (updateError) {
         setFormError("Le mot de passe n’a pas pu être mis à jour. Le lien a peut-être expiré; demandez-en un nouveau.");
         return;
