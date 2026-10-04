@@ -1,14 +1,9 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { isPublicAdminAuthPath, requiresAdminRole } from "@/src/lib/admin-auth-policy";
 import { getAdminBasePath, isPathWithin, toPublicAdminPath } from "@/src/lib/admin-route";
 
 const INTERNAL_ADMIN_BASE_PATH = "/admin";
-const PUBLIC_ADMIN_AUTH_PATHS = new Set([
-  "/admin/connexion",
-  "/admin/inscription",
-  "/admin/mot-de-passe-oublie",
-  "/admin/reinitialiser-mot-de-passe",
-]);
 
 function privateResponse(response: NextResponse): NextResponse {
   response.headers.set("Cache-Control", "private, no-store, max-age=0");
@@ -78,7 +73,7 @@ export async function proxy(request: NextRequest) {
 
   const { data: { user } } = await supabase.auth.getUser();
   const internalPath = internalUrl.pathname;
-  const isPublicAuthPage = PUBLIC_ADMIN_AUTH_PATHS.has(internalPath);
+  const isPublicAuthPage = isPublicAdminAuthPath(internalPath);
 
   if (!user && !isPublicAuthPage) {
     const loginPath = toPublicAdminPath("/admin/connexion");
@@ -87,7 +82,7 @@ export async function proxy(request: NextRequest) {
     return applyAuthState(NextResponse.redirect(destination));
   }
 
-  if (user && !isPublicAuthPage) {
+  if (user && requiresAdminRole(internalPath)) {
     const { data: role, error } = await supabase.from("user_roles")
       .select("role")
       .eq("user_id", user.id)
