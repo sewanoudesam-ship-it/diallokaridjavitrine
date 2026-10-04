@@ -1,34 +1,36 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import type { EmailOtpType } from "@supabase/supabase-js";
-import { cleanAuthCallbackUrl, parseAuthCallback } from "@/src/lib/auth-callback";
+import { parseAuthCallback } from "@/src/lib/auth-callback";
 import { getSupabaseBrowserClient } from "@/src/lib/supabase/browser";
 
-function completionUrl(): string {
-  return new URL("/auth/confirm/complete", window.location.origin).toString();
-}
+type CallbackState = "checking" | "invalid" | "unavailable";
+
+const authConfigured = Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
 
 export function AuthConfirmClient() {
+  const [state, setState] = useState<CallbackState>(authConfigured ? "checking" : "unavailable");
+
   useEffect(() => {
-    const callback = parseAuthCallback(window.location.search, window.location.hash);
-    window.history.replaceState(window.history.state, "", cleanAuthCallbackUrl(window.location.pathname));
-
-    const client = getSupabaseBrowserClient();
-    const finish = () => window.location.replace(completionUrl());
-    if (!client) {
-      finish();
-      return;
-    }
-
     let active = true;
-    const complete = () => {
-      if (active) finish();
-    };
+    const callback = parseAuthCallback(window.location.search, window.location.hash);
 
-    void (async () => {
+    // Capture credentials first, then immediately remove the query and fragment from browser history.
+    window.history.replaceState(window.history.state, "", window.location.pathname);
+
+    const verify = async () => {
+      await Promise.resolve();
+      if (!active) return;
+
       if (callback.hasError) {
-        complete();
+        setState("invalid");
+        return;
+      }
+
+      const client = getSupabaseBrowserClient();
+      if (!client) {
+        setState("unavailable");
         return;
       }
 
@@ -49,34 +51,53 @@ export function AuthConfirmClient() {
         });
         authError = result.error;
       } else {
-        complete();
+        setState("invalid");
         return;
       }
 
+      if (!active) return;
       if (authError) {
-        complete();
+        setState("invalid");
         return;
       }
 
       const { data, error } = await client.auth.getUser();
+      if (!active) return;
       if (error || !data.user) {
-        complete();
+        setState("invalid");
         return;
       }
-      complete();
-    })().catch(complete);
+
+      // The private destination is disclosed only after Supabase has verified the user session.
+      window.location.replace("/auth/confirm/complete");
+    };
+
+    void verify().catch(() => {
+      if (active) setState("unavailable");
+    });
 
     return () => {
       active = false;
     };
   }, []);
 
+  const heading = state === "checking"
+    ? "Vérification du lien"
+    : state === "invalid"
+      ? "Lien invalide ou expiré"
+      : "Service momentanément indisponible";
+  const message = state === "checking"
+    ? "Vérification sécurisée de votre lien…"
+    : state === "invalid"
+      ? "Ce lien ne peut plus être utilisé. Rendez-vous à votre accès administrateur et demandez un nouveau lien de récupération."
+      : "La vérification n’a pas pu aboutir pour le moment. Réessayez dans quelques instants.";
+
   return (
     <section className="content-page container">
-      <div className="content-narrow" aria-live="polite" aria-busy="true">
+      <div className="content-narrow" aria-live="polite" aria-busy={state === "checking"}>
         <span className="eyebrow">Espace sécurisé</span>
-        <h1 className="display page-title">Vérification du lien</h1>
-        <p className="muted">Vérification sécurisée de votre lien…</p>
+        <h1 className="display page-title">{heading}</h1>
+        <p className="muted">{message}</p>
       </div>
     </section>
   );
