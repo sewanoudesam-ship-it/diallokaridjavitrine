@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { cleanAuthCallbackUrl, hasAuthCallbackCredentials, isAuthCallbackPath, parseAuthCallback } from "../src/lib/auth-callback";
+import {
+  cleanAuthCallbackUrl,
+  hasAuthCallbackCredentials,
+  isAuthCallbackPath,
+  parseAuthCallback,
+  shouldRedirectAuthCallback,
+} from "../src/lib/auth-callback";
 
 describe("Supabase email callback parsing", () => {
   it("recognizes a PKCE code without exposing it in the clean URL", () => {
@@ -39,5 +45,13 @@ describe("Supabase email callback parsing", () => {
     expect(isAuthCallbackPath("/auth/confirm/complete")).toBe(true);
     expect(isAuthCallbackPath("/admin/connexion")).toBe(false);
     expect(isAuthCallbackPath("/auth/confirmation")).toBe(false);
+  });
+
+  it("routes links landing on a public URL through the callback, including fragments", () => {
+    expect(shouldRedirectAuthCallback("/", "?code=one-time-code", "")).toBe(true);
+    expect(shouldRedirectAuthCallback("/", "", "#access_token=access&refresh_token=refresh&type=magiclink")).toBe(true);
+    expect(shouldRedirectAuthCallback("/", "?error=access_denied", "")).toBe(true);
+    expect(shouldRedirectAuthCallback("/", "?category=books", "")).toBe(false);
+    expect(shouldRedirectAuthCallback("/auth/confirm", "?code=one-time-code", "")).toBe(false);
   });
 });

@@ -43,6 +43,13 @@ export function isAuthCallbackPath(pathname: string): boolean {
   return pathname === "/auth/confirm" || pathname.startsWith("/auth/confirm/");
 }
 
+/** Catch auth links redirected to the public Site URL; never route ordinary page URLs. */
+export function shouldRedirectAuthCallback(pathname: string, search: string, hash: string): boolean {
+  if (isAuthCallbackPath(pathname)) return false;
+  const callback = parseAuthCallback(search, hash);
+  return callback.hasError || hasAuthCallbackCredentials(callback);
+}
+
 /** Remove all auth credentials and provider parameters from the browser address bar. */
 export function cleanAuthCallbackUrl(pathname: string): string {
   return pathname;

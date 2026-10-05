@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { AuthCallbackRouter } from "@/src/components/auth-callback-router";
 import { CartProvider } from "@/src/components/cart-provider";
 import { SiteFooter } from "@/src/components/site-footer";
 import { SiteHeader } from "@/src/components/site-header";
@@ -18,6 +19,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="fr">
       <body>
+        <AuthCallbackRouter />
         <CartProvider>
           <a className="skip-link" href="#contenu">Aller au contenu</a>
           <SiteHeader />

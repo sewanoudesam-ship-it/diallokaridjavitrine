@@ -1,7 +1,7 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { isPublicAdminAuthPath, requiresAdminRole } from "@/src/lib/admin-auth-policy";
-import { isAuthCallbackPath } from "@/src/lib/auth-callback";
+import { isAuthCallbackPath, shouldRedirectAuthCallback } from "@/src/lib/auth-callback";
 import { getAdminBasePath, isPathWithin, toPublicAdminPath } from "@/src/lib/admin-route";
 
 const INTERNAL_ADMIN_BASE_PATH = "/admin";
@@ -29,6 +29,13 @@ function hiddenNotFound(): NextResponse {
 export async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
   const basePath = getAdminBasePath();
+
+  if (!isAuthCallbackPath(pathname) && shouldRedirectAuthCallback(pathname, request.nextUrl.search, "")) {
+    const callbackUrl = request.nextUrl.clone();
+    callbackUrl.pathname = "/auth/confirm";
+    return privateResponse(NextResponse.redirect(callbackUrl, 303));
+  }
+
   const isLegacyAdminPath = isPathWithin(pathname, INTERNAL_ADMIN_BASE_PATH);
 
   // In production, `/admin` and every child path intentionally reveal nothing.

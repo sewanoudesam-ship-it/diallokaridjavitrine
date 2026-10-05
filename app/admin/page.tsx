@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
+import { AdminDashboardLive } from "@/src/components/admin-dashboard-live";
 import { AdminLogoutButton } from "@/src/components/admin-logout-button";
 import { getSupabaseServerClient } from "@/src/lib/supabase/server";
 import { getAdminBasePath, toPublicAdminPath } from "@/src/lib/admin-route";
@@ -45,6 +46,7 @@ export default async function AdminPage() {
         <div className="metric-card"><span>Articles</span><strong>{value(metrics?.articles)}</strong></div>
         <div className="metric-card"><span>Commandes WhatsApp</span><strong>{value(metrics?.whatsapp_orders)}</strong></div>
       </div>
+      <AdminDashboardLive adminBasePath={adminBasePath} />
       {metricsError && <p className="notice" role="status">Les indicateurs seront disponibles après application de la migration du dashboard Supabase.</p>}
       <div className="admin-section-grid">
         {sections.map((section) => <Link className="admin-section-card" href={`${adminBasePath}/${section.slug}`} key={section.slug}><h2>{section.title}</h2><p>{section.description}</p><span>Ouvrir →</span></Link>)}
