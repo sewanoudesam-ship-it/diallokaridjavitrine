@@ -1,13 +1,8 @@
 import { describe, expect, it } from "vitest";
-import {
-  ADMIN_SIGNUP_MIN_PASSWORD_LENGTH,
-  buildAdminSignupRedirect,
-  normalizeAdminSignupEmail,
-  validateAdminSignupInput,
-} from "../src/lib/admin-signup";
+import { buildAdminSignupRedirect, normalizeAdminSignupEmail, validateAdminSignupInput } from "../src/lib/admin-signup";
 
-describe("open admin signup input", () => {
-  it("normalizes the email without changing password contents", () => {
+describe("admin signup by email confirmation", () => {
+  it("normalizes the email", () => {
     expect(normalizeAdminSignupEmail("  Admin@Example.COM ")).toBe("admin@example.com");
   });
 
@@ -18,15 +13,10 @@ describe("open admin signup input", () => {
       .toBe("http://localhost:3000/auth/confirm?flow=signup");
   });
 
-  it("rejects invalid or overlong emails", () => {
-    expect(validateAdminSignupInput("not-an-email", "correct-horse-battery", "correct-horse-battery")).toBe("EMAIL_INVALID");
-    expect(validateAdminSignupInput(`${"a".repeat(245)}@example.com`, "correct-horse-battery", "correct-horse-battery")).toBe("EMAIL_INVALID");
-  });
-
-  it("requires a 12-character password and matching confirmation", () => {
-    expect(ADMIN_SIGNUP_MIN_PASSWORD_LENGTH).toBe(12);
-    expect(validateAdminSignupInput("admin@example.com", "too-short", "too-short")).toBe("PASSWORD_TOO_SHORT");
-    expect(validateAdminSignupInput("admin@example.com", "long-password-123", "different-password")).toBe("PASSWORD_MISMATCH");
-    expect(validateAdminSignupInput("admin@example.com", "long-password-123", "long-password-123")).toBeNull();
+  it("requires a valid first name, last name and email", () => {
+    expect(validateAdminSignupInput("", "Diallo", "admin@example.com")).toBe("FIRST_NAME_INVALID");
+    expect(validateAdminSignupInput("Karidja", "", "admin@example.com")).toBe("LAST_NAME_INVALID");
+    expect(validateAdminSignupInput("Karidja", "Diallo", "not-an-email")).toBe("EMAIL_INVALID");
+    expect(validateAdminSignupInput("Karidja", "DIALLO", "admin@example.com")).toBeNull();
   });
 });

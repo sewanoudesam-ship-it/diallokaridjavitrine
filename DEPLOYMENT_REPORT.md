@@ -21,7 +21,7 @@ Les deux URL du site sont des previews temporaires de Sandbox/WebDev; elles peuv
 
 - **Constat initial :** l’URL demandée `/caridja_diallo_admin_principe/` répondait 404; le dépôt exposait un autre chemin avec une majuscule.
 - **Risque critique corrigé :** la migration `open_admin_signup_after_email_confirmation` attribuait le rôle `admin` à toute personne confirmant une adresse e-mail. Le correctif `restore_invitation_only_admin` supprime le trigger d’attribution automatique.
-- **Contrôle restauré :** le flux `request-admin-access` vérifie le code bootstrap/invitation et l’adresse côté service, puis consomme le code une seule fois via `consume_admin_access_code`.
+- **Parcours d’inscription :** le formulaire collecte le prénom, le nom et l’e-mail, envoie immédiatement le lien Supabase, puis le trigger attribue le rôle `admin` et crée le profil lorsque `email_confirmed_at` est renseigné.
 - **Chemins finaux :** le site public reste à la racine `/`; le portail admin est `/caridja_diallo_admin_principe/`; l’activation admin est `/caridja_diallo_admin_principe/sign_up`; les chemins internes `/admin/*` restent masqués en 404.
 - **Synchronisation publique :** les pages accueil, livre et boutique lisent les vues Supabase publiées à chaque requête; une publication ou modification enregistrée dans l’administration est donc visible automatiquement au prochain chargement public, sans copie manuelle ni cache statique.
 - **Validation :** 36 tests, TypeScript et ESLint passent; le trigger automatique est absent dans Supabase et le consommateur d’invitation est présent.

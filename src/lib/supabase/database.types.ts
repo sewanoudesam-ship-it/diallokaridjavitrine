@@ -61,7 +61,7 @@ export type Database = {
   public: {
     Tables: {
       user_roles: Table<UserRoleRow, { user_id: string; role: "admin"; granted_at?: string; granted_by?: string | null }>;
-      profiles: Table<{ user_id: string; display_name: string; created_at: string; updated_at: string }, { user_id: string; display_name: string; created_at?: string; updated_at?: string }>;
+      profiles: Table<{ user_id: string; display_name: string; first_name: string | null; last_name: string | null; created_at: string; updated_at: string }, { user_id: string; display_name: string; first_name?: string | null; last_name?: string | null; created_at?: string; updated_at?: string }>;
       books: Table<BookRow, {
         id?: string; title: string; author: string; slug: string; description?: string | null; excerpt?: string | null;
         price_amount?: number | null; currency?: string | null; cover_path?: string | null; original_pdf_path?: string | null;

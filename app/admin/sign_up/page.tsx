@@ -15,7 +15,7 @@ export default async function AdminSignupPage({ searchParams }: { searchParams: 
       <div className="content-narrow">
         <span className="eyebrow">Espace privé</span>
         <h1 className="display page-title">Créer un compte administrateur</h1>
-        <p className="muted">Cette page est réservée aux personnes qui ont reçu un code d’accès à usage unique. Le code est vérifié côté serveur et l’adresse e-mail doit correspondre à l’invitation.</p>
+        <p className="muted">Saisissez vos prénom, nom et adresse e-mail. Un lien de confirmation sera envoyé immédiatement. Après confirmation, le compte sera activé avec les autorisations administratives.</p>
         {auth === "invalid-link" && <p className="notice" role="status">Le lien de confirmation est invalide ou expiré. Recommencez l’activation pour demander un nouveau lien.</p>}
         <AdminSignupForm adminBasePath={adminBasePath} />
       </div>

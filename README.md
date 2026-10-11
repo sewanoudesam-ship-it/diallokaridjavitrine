@@ -45,7 +45,7 @@ Ne jamais créer de variable `NEXT_PUBLIC_*` avec une clé privilégiée. Supaba
 
 - URL canonique : `https://maison-karidja.vercel.app/caridja_diallo_admin_principe/`.
 - Le chemin public est un point d’entrée, jamais une preuve d’autorisation : chaque page privée exige une session Supabase et le rôle `admin`; `/admin/*` reste masqué.
-- L’inscription ouverte qui attribuait le rôle après simple confirmation d’e-mail a été supprimée. La création admin passe uniquement par le bootstrap ou une invitation nominative à code unique, validée côté serveur et consommée atomiquement.
+- L’inscription ouverte qui attribuait le rôle après simple confirmation d’e-mail a été supprimée. La création admin collecte le prénom, le nom et l’e-mail, envoie immédiatement un lien de confirmation, puis attribue le rôle `admin` lorsque Supabase confirme l’adresse.
 - L’ancien chemin `/Karidja_diallo_admin_principe` redirige vers le chemin canonique.
 
 ## Commandes locales

@@ -1,7 +1,7 @@
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-export const ADMIN_SIGNUP_MIN_PASSWORD_LENGTH = 12;
+const NAME_PATTERN = /^[\p{L}\p{M}][\p{L}\p{M}'’ -]{0,79}$/u;
 
-export type AdminSignupError = "EMAIL_INVALID" | "PASSWORD_TOO_SHORT" | "PASSWORD_MISMATCH";
+export type AdminSignupError = "FIRST_NAME_INVALID" | "LAST_NAME_INVALID" | "EMAIL_INVALID";
 
 export function normalizeAdminSignupEmail(email: string): string {
   return email.trim().toLowerCase();
@@ -14,16 +14,12 @@ export function buildAdminSignupRedirect(siteUrl: string | null | undefined, cur
   return redirect.toString();
 }
 
-export function validateAdminSignupInput(
-  email: string,
-  password: string,
-  confirmation: string,
-): AdminSignupError | null {
+export function validateAdminSignupInput(firstName: string, lastName: string, email: string): AdminSignupError | null {
+  const normalizedFirstName = firstName.trim();
+  const normalizedLastName = lastName.trim();
   const normalizedEmail = normalizeAdminSignupEmail(email);
-  if (!normalizedEmail || normalizedEmail.length > 254 || !EMAIL_PATTERN.test(normalizedEmail)) {
-    return "EMAIL_INVALID";
-  }
-  if (password.length < ADMIN_SIGNUP_MIN_PASSWORD_LENGTH) return "PASSWORD_TOO_SHORT";
-  if (password !== confirmation) return "PASSWORD_MISMATCH";
+  if (!normalizedFirstName || normalizedFirstName.length > 80 || !NAME_PATTERN.test(normalizedFirstName)) return "FIRST_NAME_INVALID";
+  if (!normalizedLastName || normalizedLastName.length > 80 || !NAME_PATTERN.test(normalizedLastName)) return "LAST_NAME_INVALID";
+  if (!normalizedEmail || normalizedEmail.length > 254 || !EMAIL_PATTERN.test(normalizedEmail)) return "EMAIL_INVALID";
   return null;
 }
