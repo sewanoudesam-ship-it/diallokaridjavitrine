@@ -1,6 +1,7 @@
 # Maison Karidja V1 — Rapport de livraison
 
-**Date :** 30 septembre 2026
+**Auteur :** Samson HOUNDE
+**Date :** 11 octobre 2026
 **Hébergement choisi :** Vercel Hobby, conformément à la demande de Karidja.
 **État :** frontend et backend Supabase déployés; projet Vercel créé et relié au dépôt GitHub; premier déploiement de production réussi et vérifié.
 
@@ -13,7 +14,16 @@
 - **Tableau de bord Vercel :** <https://vercel.com/sewanoudesam-ship-its-projects/maison-karidja>
 - **Domaine Vercel de production :** <https://maison-karidja.vercel.app>
 
-Les deux URL du site sont des previews temporaires de Sandbox/WebDev; elles peuvent cesser de fonctionner lorsque l’environnement s’arrête. Le domaine Vercel est en production : l’accueil et `/admin/connexion` répondent en HTTP 200. L’ancien alias `maison-karidja-v1.vercel.app` redirige en HTTP 307 vers le nouveau domaine.
+Les deux URL du site sont des previews temporaires de Sandbox/WebDev; elles peuvent cesser de fonctionner lorsque l’environnement s’arrête. Le domaine Vercel est en production : l’accueil et `/caridja_diallo_admin_principe/connexion` répondent en HTTP 200. L’ancien alias `maison-karidja-v1.vercel.app` redirige en HTTP 307 vers le nouveau domaine.
+
+
+## Audit admin du 11 octobre 2026
+
+- **Constat initial :** l’URL demandée `/caridja_diallo_admin_principe/` répondait 404; le dépôt exposait un autre chemin avec une majuscule.
+- **Risque critique corrigé :** la migration `open_admin_signup_after_email_confirmation` attribuait le rôle `admin` à toute personne confirmant une adresse e-mail. Le correctif `restore_invitation_only_admin` supprime le trigger d’attribution automatique.
+- **Contrôle restauré :** le flux `request-admin-access` vérifie le code bootstrap/invitation et l’adresse côté service, puis consomme le code une seule fois via `consume_admin_access_code`.
+- **Chemin final :** `/caridja_diallo_admin_principe/` est canonique; `/Karidja_diallo_admin_principe/` redirige en 308. Les chemins internes `/admin/*` restent masqués en 404.
+- **Validation :** 36 tests, TypeScript et ESLint passent; le trigger automatique est absent dans Supabase et le consommateur d’invitation est présent.
 
 ## Livré
 
@@ -58,7 +68,7 @@ La copie indépendante demandée est publiée sur la branche `main` du dépôt p
 - Projet `maison-karidja`, créé dans l’espace Hobby et relié à `sewanoudesam-ship-it/diallokaridjavitrine`.
 - Domaine de production : `https://maison-karidja.vercel.app`; premier build réussi depuis `main` (commit `b8e2ed0`). L’ancien domaine `maison-karidja-v1.vercel.app` redirige en 307 vers ce domaine.
 - Variables Vercel présentes : `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` (clé publique uniquement) et `NEXT_PUBLIC_SITE_URL` pour Production.
-- `NEXT_PUBLIC_SITE_URL` a été mis à jour pour Production et `APP_BASE_URL` côté Supabase a été remplacée par le nouveau domaine. Le build est réussi; contrôles HTTP observés : `/` → 200, `/admin/connexion` → 200, ancien alias → 307 vers le domaine canonique.
+- `NEXT_PUBLIC_SITE_URL` a été mis à jour pour Production et `APP_BASE_URL` côté Supabase a été remplacée par le nouveau domaine. Le build est réussi; contrôles HTTP observés : `/` → 200, `/caridja_diallo_admin_principe/connexion` → 200, ancien alias → 307 vers le domaine canonique.
 
 ## Dépendances et alertes GitHub
 
@@ -113,13 +123,13 @@ Aucun compte admin n’a été créé, car aucune adresse de compte de Karidja n
    ```
 
    Cette instruction n’accorde aucun droit à une autre personne; ne jamais publier l’UUID ou le mot de passe dans Git.
-3. Se connecter à `/admin/connexion`, puis renseigner les informations réelles : WhatsApp admin au format E.164, instructions de paiement, e-mail d’assistance et mentions légales.
+3. Se connecter à `/caridja_diallo_admin_principe/connexion`, puis renseigner les informations réelles : WhatsApp admin au format E.164, instructions de paiement, e-mail d’assistance et mentions légales.
 4. Publier les fiches et prix réels, téléverser uniquement les images de livres/bijoux publiées par Karidja et ajouter le PDF maître du livre dans l’espace privé.
 5. À chaque paiement du livre vérifié manuellement, l’administration génère un code individuel et un lien, personnalise le PDF au nom du client et limite le téléchargement à deux fois. Le système prépare le texte WhatsApp vers le client; Karidja l’envoie manuellement et peut enregistrer l’envoi.
 
 ## Ce qui reste pour la mise en service complète
 
-- **Hébergement terminé :** premier déploiement de production réussi depuis `main`; `https://maison-karidja.vercel.app/` et `/admin/connexion` répondent en HTTPS 200, l’ancien alias redirige vers le nouveau et `APP_BASE_URL` pointe déjà vers le nouveau domaine.
+- **Hébergement terminé :** premier déploiement de production réussi depuis `main`; `https://maison-karidja.vercel.app/` et `/caridja_diallo_admin_principe/connexion` répondent en HTTPS 200, l’ancien alias redirige vers le nouveau et `APP_BASE_URL` pointe déjà vers le nouveau domaine.
 - Faire le contrôle fonctionnel de bout en bout après création de l’admin et saisie par Karidja des coordonnées, instructions de paiement, informations légales et contenus authentiques; aucun compte ou article n’a été inventé.
 - Les tableaux de bord, commandes, liens de téléchargement et parcours WhatsApp ne peuvent être réellement mis en service pour les clients qu’après création de l’admin et saisie des données commerciales/authentiques par Karidja.
 

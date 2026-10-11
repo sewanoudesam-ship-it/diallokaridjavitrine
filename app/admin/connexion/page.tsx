@@ -15,7 +15,7 @@ export default async function AdminLoginPage({ searchParams }: { searchParams: P
       <div className="content-narrow">
         <span className="eyebrow">Espace privé</span>
         <h1 className="display page-title">Connexion administrateur</h1>
-        <p className="muted">Accès réservé aux comptes autorisés. La création du premier compte nécessite le code bootstrap à usage unique; les comptes suivants sont créés sur invitation nominative.</p>
+        <p className="muted">Accès réservé aux comptes autorisés. La création d’un compte nécessite un code bootstrap ou une invitation nominative à usage unique.</p>
         {auth === "invalid-link" && <p className="notice" role="status">Le lien de validation est invalide ou expiré. Relancez l’activation ou la récupération de mot de passe.</p>}
         {auth === "unavailable" && <p className="notice" role="status">Le service d’authentification est temporairement indisponible. Réessayez plus tard.</p>}
         <AdminLoginForm adminBasePath={adminBasePath} />

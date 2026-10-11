@@ -36,7 +36,7 @@ Pour le modèle **Invite user**, le même callback peut être utilisé avec `typ
 </a>
 ```
 
-La page d’application demande ensuite un clic explicite avant d’appeler `verifyOtp`. Garder l’URL `/auth/confirm` autorisée dans **Authentication → URL Configuration**. Le chemin admin public est `/Karidja_diallo_admin_principe`; il n’est pas un secret et ne remplace pas la session ni le rôle `admin`. Ne jamais placer de jeton OTP ni de clé Supabase privilégiée dans une URL ou un modèle e-mail.
+La page d’application demande ensuite un clic explicite avant d’appeler `verifyOtp`. Garder l’URL `/auth/confirm` autorisée dans **Authentication → URL Configuration**. Le chemin admin public est `/caridja_diallo_admin_principe`; il n’est pas un secret et ne remplace pas la session ni le rôle `admin`. Ne jamais placer de jeton OTP ni de clé Supabase privilégiée dans une URL ou un modèle e-mail.
 
 > Le code de l’application ne configure pas de compte SMTP et aucun e-mail de test n’a été envoyé pendant ce correctif. La sélection du fournisseur et l’enregistrement de ses identifiants restent à faire avec l’administrateur du projet.
 

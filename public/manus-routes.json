@@ -1,14 +1,68 @@
 {
   "routes": [
-    { "path": "/", "title": "Accueil" },
-    { "path": "/livre", "title": "Le livre" },
-    { "path": "/boutique", "title": "La boutique" },
-    { "path": "/boutique/:slug", "title": "Article" },
-    { "path": "/panier", "title": "Panier" },
-    { "path": "/telechargement", "title": "Accès au livre" },
-    { "path": "/a-propos", "title": "À propos" },
-    { "path": "/contact", "title": "Contact" },
-    { "path": "/confidentialite", "title": "Confidentialité" },
-    { "path": "/cgv", "title": "Conditions de vente" }
+    {
+      "path": "/",
+      "title": "Accueil"
+    },
+    {
+      "path": "/livre",
+      "title": "Le livre"
+    },
+    {
+      "path": "/boutique",
+      "title": "La boutique"
+    },
+    {
+      "path": "/boutique/:slug",
+      "title": "Article"
+    },
+    {
+      "path": "/panier",
+      "title": "Panier"
+    },
+    {
+      "path": "/telechargement",
+      "title": "Accès au livre"
+    },
+    {
+      "path": "/a-propos",
+      "title": "À propos"
+    },
+    {
+      "path": "/contact",
+      "title": "Contact"
+    },
+    {
+      "path": "/confidentialite",
+      "title": "Confidentialité"
+    },
+    {
+      "path": "/cgv",
+      "title": "Conditions de vente"
+    },
+    {
+      "path": "/caridja_diallo_admin_principe",
+      "title": "Administration"
+    },
+    {
+      "path": "/caridja_diallo_admin_principe/connexion",
+      "title": "Connexion administrateur"
+    },
+    {
+      "path": "/caridja_diallo_admin_principe/inscription",
+      "title": "Activation administrateur"
+    },
+    {
+      "path": "/caridja_diallo_admin_principe/mot-de-passe-oublie",
+      "title": "Récupération admin"
+    },
+    {
+      "path": "/caridja_diallo_admin_principe/reinitialiser-mot-de-passe",
+      "title": "Nouveau mot de passe"
+    },
+    {
+      "path": "/caridja_diallo_admin_principe/:section",
+      "title": "Section administration"
+    }
   ]
 }

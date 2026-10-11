@@ -2,7 +2,7 @@ import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { isPublicAdminAuthPath, requiresAdminRole } from "@/src/lib/admin-auth-policy";
 import { isAuthCallbackPath, shouldRedirectAuthCallback } from "@/src/lib/auth-callback";
-import { getAdminBasePath, isPathWithin, toPublicAdminPath } from "@/src/lib/admin-route";
+import { ADMIN_PUBLIC_LEGACY_BASE_PATH, getAdminBasePath, isPathWithin, toPublicAdminPath } from "@/src/lib/admin-route";
 
 const INTERNAL_ADMIN_BASE_PATH = "/admin";
 
@@ -37,9 +37,15 @@ export async function proxy(request: NextRequest) {
   }
 
   const isLegacyAdminPath = isPathWithin(pathname, INTERNAL_ADMIN_BASE_PATH);
+  const isOldPublicAdminPath = isPathWithin(pathname, ADMIN_PUBLIC_LEGACY_BASE_PATH);
 
   // In production, `/admin` and every child path intentionally reveal nothing.
   if (isLegacyAdminPath && basePath !== INTERNAL_ADMIN_BASE_PATH) return hiddenNotFound();
+  if (isOldPublicAdminPath && basePath !== ADMIN_PUBLIC_LEGACY_BASE_PATH) {
+    const canonicalUrl = request.nextUrl.clone();
+    canonicalUrl.pathname = `${basePath}${pathname.slice(ADMIN_PUBLIC_LEGACY_BASE_PATH.length)}`;
+    return privateResponse(NextResponse.redirect(canonicalUrl, 308));
+  }
   if (isAuthCallbackPath(pathname)) return privateResponse(NextResponse.next({ request }));
   if (!basePath || !isPathWithin(pathname, basePath)) return NextResponse.next({ request });
 
