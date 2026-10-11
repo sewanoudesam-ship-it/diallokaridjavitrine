@@ -2,8 +2,10 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { EmailOtpType } from "@supabase/supabase-js";
+import Link from "next/link";
 import { AdminPasswordRequestForm } from "@/src/components/admin-password-request-form";
-import { hasAuthCallbackCredentials, parseAuthCallback, type AuthCallbackOtpType, type ParsedAuthCallback } from "@/src/lib/auth-callback";
+import { hasAuthCallbackCredentials, parseAuthCallback, getAuthCompletionPath, type AuthCallbackOtpType, type ParsedAuthCallback } from "@/src/lib/auth-callback";
+import { getAdminBasePath } from "@/src/lib/admin-route";
 import { AUTH_REQUEST_TIMEOUT_MS, withTimeout } from "@/src/lib/with-timeout";
 import { getSupabaseBrowserClient } from "@/src/lib/supabase/browser";
 
@@ -15,7 +17,9 @@ export function AuthConfirmClient() {
   const [state, setState] = useState<CallbackState>(authConfigured ? "preparing" : "unavailable");
   const [canRetryVerification, setCanRetryVerification] = useState(false);
   const [callbackType, setCallbackType] = useState<AuthCallbackOtpType | null>(null);
+  const [isSignupFlow, setIsSignupFlow] = useState(false);
   const callbackRef = useRef<ParsedAuthCallback | null>(null);
+  const signupFlowRef = useRef(false);
 
   useEffect(() => {
     let active = true;
@@ -23,11 +27,15 @@ export function AuthConfirmClient() {
     // has the credentials after they have been removed from the address bar.
     const callback = callbackRef.current ?? parseAuthCallback(window.location.search, window.location.hash);
     callbackRef.current = callback;
+    const requestedFlow = new URLSearchParams(window.location.search).get("flow");
+    const signupFlow = callback.type === "signup" || requestedFlow === "signup" || signupFlowRef.current;
+    signupFlowRef.current = signupFlow;
     window.history.replaceState(window.history.state, "", window.location.pathname);
 
     void Promise.resolve().then(() => {
       if (!active) return;
       setCallbackType(callback.type);
+      setIsSignupFlow(signupFlow);
       if (!authConfigured) {
         setState("unavailable");
       } else if (callback.hasError || !hasAuthCallbackCredentials(callback)) {
@@ -93,8 +101,8 @@ export function AuthConfirmClient() {
         return;
       }
 
-      // The private destination is disclosed only after Supabase has verified the user session.
-      window.location.replace("/auth/confirm/complete");
+      // The server finalizer rechecks the session and admin role before redirecting.
+      window.location.replace(getAuthCompletionPath(callback.type, signupFlowRef.current ? "signup" : null));
     } catch {
       setState("unavailable");
     }
@@ -104,7 +112,7 @@ export function AuthConfirmClient() {
   const heading = state === "preparing"
     ? "Préparation du lien sécurisé"
     : state === "ready"
-      ? isInvitation ? "Confirmer l’invitation" : "Confirmer le lien de récupération"
+      ? isInvitation ? "Confirmer l’invitation" : isSignupFlow ? "Confirmer la création du compte" : "Confirmer le lien de récupération"
       : state === "verifying"
         ? "Vérification en cours"
         : state === "invalid"
@@ -116,7 +124,9 @@ export function AuthConfirmClient() {
     : state === "ready"
       ? isInvitation
         ? "Pour éviter qu’un contrôle automatique de votre boîte e-mail n’utilise le lien à votre place, confirmez ici pour accepter l’invitation et définir votre mot de passe."
-        : "Pour éviter qu’un contrôle automatique de votre boîte e-mail n’utilise le lien à votre place, confirmez ici pour continuer."
+        : isSignupFlow
+          ? "Confirmez l’adresse e-mail pour activer le compte. Une fois vérifiée, cette adresse recevra les droits administrateur complets."
+          : "Pour éviter qu’un contrôle automatique de votre boîte e-mail n’utilise le lien à votre place, confirmez ici pour continuer."
       : state === "verifying"
         ? "Nous vérifions le lien auprès du service sécurisé. Cette étape peut prendre quelques secondes."
         : state === "invalid"
@@ -132,7 +142,7 @@ export function AuthConfirmClient() {
 
         {state === "ready" && (
           <button className="button" type="button" onClick={verifyLink}>
-            {isInvitation ? "Accepter l’invitation et définir mon mot de passe" : "Confirmer et choisir un nouveau mot de passe"}
+            {isInvitation ? "Accepter l’invitation et définir mon mot de passe" : isSignupFlow ? "Confirmer mon adresse e-mail" : "Confirmer et continuer"}
           </button>
         )}
         {state === "unavailable" && canRetryVerification && (
@@ -140,8 +150,17 @@ export function AuthConfirmClient() {
         )}
         {(state === "invalid" || state === "unavailable") && (
           <div className="admin-panel">
-            <h2>Demander un autre lien</h2>
-            <AdminPasswordRequestForm />
+            {isSignupFlow ? (
+              <>
+                <h2>Recommencer l’inscription</h2>
+                <p><Link className="text-link" href={`${getAdminBasePath()}/inscription`}>Demander un nouveau lien de confirmation</Link></p>
+              </>
+            ) : (
+              <>
+                <h2>Demander un autre lien</h2>
+                <AdminPasswordRequestForm />
+              </>
+            )}
           </div>
         )}
       </div>

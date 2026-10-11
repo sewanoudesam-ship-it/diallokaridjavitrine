@@ -11,7 +11,7 @@ function privateResponse(response: NextResponse): NextResponse {
 }
 
 function restartRecovery(request: NextRequest): NextResponse {
-  // This public page offers a way to restart without disclosing the opaque admin path.
+  // This public page offers a way to restart without exposing token details.
   return privateResponse(NextResponse.redirect(new URL("/auth/confirm?restart=1", request.url), 303));
 }
 
@@ -29,7 +29,10 @@ export async function GET(request: NextRequest) {
       .maybeSingle();
     if (roleError || role?.role !== "admin") return restartRecovery(request);
 
-    const publicPath = toPublicAdminPath("/admin/reinitialiser-mot-de-passe");
+    const internalPath = request.nextUrl.searchParams.get("flow") === "signup"
+      ? "/admin"
+      : "/admin/reinitialiser-mot-de-passe";
+    const publicPath = toPublicAdminPath(internalPath);
     if (!publicPath) return restartRecovery(request);
 
     return privateResponse(NextResponse.redirect(new URL(publicPath, request.url), 303));

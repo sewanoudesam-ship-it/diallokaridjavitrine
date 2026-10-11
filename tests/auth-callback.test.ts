@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   cleanAuthCallbackUrl,
+  getAuthCompletionPath,
   hasAuthCallbackCredentials,
   isAuthCallbackPath,
   parseAuthCallback,
@@ -19,6 +20,19 @@ describe("Supabase email callback parsing", () => {
     const result = parseAuthCallback("?token_hash=hashed-token&type=invite", "");
     expect(result).toMatchObject({ tokenHash: "hashed-token", type: "invite" });
     expect(hasAuthCallbackCredentials(result)).toBe(true);
+  });
+
+  it("recognizes a server-verifiable token hash for open email signup confirmation", () => {
+    const result = parseAuthCallback("?token_hash=hashed-token&type=signup", "");
+    expect(result).toMatchObject({ tokenHash: "hashed-token", type: "signup" });
+    expect(hasAuthCallbackCredentials(result)).toBe(true);
+  });
+
+  it("routes signup confirmations separately from recovery and invitations", () => {
+    expect(getAuthCompletionPath("signup", null)).toBe("/auth/confirm/complete?flow=signup");
+    expect(getAuthCompletionPath(null, "signup")).toBe("/auth/confirm/complete?flow=signup");
+    expect(getAuthCompletionPath("recovery", null)).toBe("/auth/confirm/complete");
+    expect(getAuthCompletionPath("invite", null)).toBe("/auth/confirm/complete");
   });
 
   it("recognizes implicit access and refresh tokens from the URL fragment", () => {

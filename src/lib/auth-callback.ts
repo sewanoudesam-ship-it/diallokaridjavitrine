@@ -39,6 +39,12 @@ export function hasAuthCallbackCredentials(callback: ParsedAuthCallback): boolea
   return Boolean(callback.code || (callback.tokenHash && callback.type) || (callback.accessToken && callback.refreshToken));
 }
 
+export function getAuthCompletionPath(type: AuthCallbackOtpType | null, requestedFlow: string | null): string {
+  return type === "signup" || requestedFlow === "signup"
+    ? "/auth/confirm/complete?flow=signup"
+    : "/auth/confirm/complete";
+}
+
 export function isAuthCallbackPath(pathname: string): boolean {
   return pathname === "/auth/confirm" || pathname.startsWith("/auth/confirm/");
 }

@@ -46,7 +46,7 @@ export function AdminLoginForm({ adminBasePath }: { adminBasePath: string }) {
       </form>
       <div className="workflow-actions">
         <Link className="text-link" href={`${adminBasePath}/mot-de-passe-oublie`}>Mot de passe oublié ?</Link>
-        <Link className="text-link" href={`${adminBasePath}/inscription`}>J’ai un code d’accès</Link>
+        <Link className="text-link" href={`${adminBasePath}/inscription`}>Créer un compte administrateur</Link>
       </div>
     </>
   );
