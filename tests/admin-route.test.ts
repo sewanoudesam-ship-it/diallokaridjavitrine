@@ -1,38 +1,26 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { getAdminBasePath, isPathWithin, toPublicAdminPath } from "../src/lib/admin-route";
-
-const SEGMENT = "a1b2c3d4e5f60718293a4b5c6d7e8f90123456789abcdef0";
+import { ADMIN_PUBLIC_BASE_PATH, getAdminBasePath, isPathWithin, toPublicAdminPath } from "../src/lib/admin-route";
 
 afterEach(() => vi.unstubAllEnvs());
 
-describe("private admin route", () => {
-  it("uses only a 48-character lowercase hex segment in production", () => {
-    vi.stubEnv("NODE_ENV", "production");
-    vi.stubEnv("ADMIN_ROUTE_SEGMENT", SEGMENT);
-    expect(getAdminBasePath()).toBe(`/${SEGMENT}`);
+describe("canonical admin route", () => {
+  it("uses the requested public path even when the old opaque environment variable is set", () => {
+    vi.stubEnv("ADMIN_ROUTE_SEGMENT", "a1b2c3d4e5f60718293a4b5c6d7e8f90123456789abcdef0");
+    expect(getAdminBasePath()).toBe("/Karidja_diallo_admin_principe");
+    expect(ADMIN_PUBLIC_BASE_PATH).toBe("/Karidja_diallo_admin_principe");
   });
 
-  it("fails closed in production if the secret is missing or malformed", () => {
-    vi.stubEnv("NODE_ENV", "production");
-    vi.stubEnv("ADMIN_ROUTE_SEGMENT", "admin");
-    expect(getAdminBasePath()).toBeNull();
-    vi.stubEnv("ADMIN_ROUTE_SEGMENT", "");
-    expect(getAdminBasePath()).toBeNull();
-  });
-
-  it("maps only explicit internal admin paths and preserves safe fixed query strings", () => {
-    vi.stubEnv("NODE_ENV", "production");
-    vi.stubEnv("ADMIN_ROUTE_SEGMENT", SEGMENT);
-    expect(toPublicAdminPath("/admin")).toBe(`/${SEGMENT}`);
-    expect(toPublicAdminPath("/admin/connexion")).toBe(`/${SEGMENT}/connexion`);
-    expect(toPublicAdminPath("/admin/inscription?claim=1")).toBe(`/${SEGMENT}/inscription?claim=1`);
+  it("maps only explicit internal admin paths", () => {
+    expect(toPublicAdminPath("/admin")).toBe("/Karidja_diallo_admin_principe");
+    expect(toPublicAdminPath("/admin/connexion")).toBe("/Karidja_diallo_admin_principe/connexion");
+    expect(toPublicAdminPath("/admin/inscription?claim=1")).toBe("/Karidja_diallo_admin_principe/inscription?claim=1");
     expect(toPublicAdminPath("/administrator")).toBeNull();
-    expect(toPublicAdminPath("https://attacker.example/" )).toBeNull();
+    expect(toPublicAdminPath("https://attacker.example/")).toBeNull();
   });
 
   it("matches exact base paths but not lookalike prefixes", () => {
-    expect(isPathWithin("/secret", "/secret")).toBe(true);
-    expect(isPathWithin("/secret/commandes", "/secret")).toBe(true);
-    expect(isPathWithin("/secretary", "/secret")).toBe(false);
+    expect(isPathWithin("/Karidja_diallo_admin_principe", ADMIN_PUBLIC_BASE_PATH)).toBe(true);
+    expect(isPathWithin("/Karidja_diallo_admin_principe/commandes", ADMIN_PUBLIC_BASE_PATH)).toBe(true);
+    expect(isPathWithin("/Karidja_diallo_admin_principes", ADMIN_PUBLIC_BASE_PATH)).toBe(false);
   });
 });

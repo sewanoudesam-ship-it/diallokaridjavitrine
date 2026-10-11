@@ -25,6 +25,12 @@ Ne jamais créer de variable `NEXT_PUBLIC_*` avec une clé privilégiée. Supaba
 
 ## Configuration Supabase et mise en service
 
+### Accès à l’administration
+
+- Chemin de production : `https://maison-karidja.vercel.app/Karidja_diallo_admin_principe`.
+- Le chemin est un point d’entrée lisible, pas un secret : toutes les pages administratives restent protégées par une session Supabase et le rôle `admin`.
+- Les chemins internes `/admin/*` ne sont pas exposés directement.
+
 1. Les migrations sont numérotées et s’appliquent dans l’ordre avec `supabase/migrations/*.sql`.
 2. Le nouveau projet contient les buckets `public-assets` (public, images validées par Karidja), `book-originals` (privé) et `book-personalized` (privé).
 3. Les fonctions Edge lisent le numéro WhatsApp du client enregistré et préparent le message `wa.me`; Karidja appuie elle-même sur Envoyer dans WhatsApp. Aucun envoi automatique n’est effectué.
