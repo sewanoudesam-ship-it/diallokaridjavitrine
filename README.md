@@ -27,7 +27,9 @@ Ne jamais créer de variable `NEXT_PUBLIC_*` avec une clé privilégiée. Supaba
 
 ### Accès à l’administration
 
-- Chemin de production : `https://maison-karidja.vercel.app/caridja_diallo_admin_principe`.
+- Site public : `https://maison-karidja.vercel.app/`.
+- Portail admin : `https://maison-karidja.vercel.app/caridja_diallo_admin_principe/`.
+- Activation admin : `https://maison-karidja.vercel.app/caridja_diallo_admin_principe/sign_up`.
 - Le chemin est un point d’entrée lisible, pas un secret : toutes les pages administratives restent protégées par une session Supabase et le rôle `admin`.
 - Les chemins internes `/admin/*` ne sont pas exposés directement.
 
@@ -36,7 +38,7 @@ Ne jamais créer de variable `NEXT_PUBLIC_*` avec une clé privilégiée. Supaba
 3. Les fonctions Edge lisent le numéro WhatsApp du client enregistré et préparent le message `wa.me`; Karidja appuie elle-même sur Envoyer dans WhatsApp. Aucun envoi automatique n’est effectué.
 4. Aucun compte admin n’a été inventé ou créé. Créer le compte réel de Karidja dans Supabase Auth, vérifier son UUID, puis lui attribuer explicitement `admin` dans `public.user_roles`; il n’y a ni inscription publique ni attribution automatique.
 5. Dans l’administration, renseigner les coordonnées WhatsApp réelles, les consignes de paiement et les informations légales, puis téléverser les fiches et fichiers commerciaux authentiques. Le catalogue reste vide jusqu’à ces saisies.
-6. Le projet Vercel Hobby est créé et relié au dépôt GitHub. Le site répond sur `https://maison-karidja.vercel.app`; l’accueil et `/admin/connexion` ont été testés en HTTP 200, et l’ancien alias redirige vers le domaine professionnel.
+6. Le projet Vercel Hobby est créé et relié au dépôt GitHub. Le site répond sur `https://maison-karidja.vercel.app`; l’accueil et `/caridja_diallo_admin_principe/connexion` ont été testés en HTTP 200, et l’ancien alias redirige vers le domaine professionnel.
 7. Pour rendre les liens de récupération admin fiables, configurer un SMTP personnalisé et le modèle Recovery selon [la procédure de récupération admin](docs/admin-password-recovery.md). L’URL Auth `/auth/confirm` est déjà autorisée en production; sans SMTP personnalisé, Supabase utilise ses modèles par défaut et limite les e-mails Auth à 2 par heure au total, avec 60 secondes entre demandes de récupération.
 
 ## Audit admin — correction appliquée

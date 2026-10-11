@@ -125,7 +125,7 @@ export function AuthConfirmClient() {
       ? isInvitation
         ? "Pour éviter qu’un contrôle automatique de votre boîte e-mail n’utilise le lien à votre place, confirmez ici pour accepter l’invitation et définir votre mot de passe."
         : isSignupFlow
-          ? "Confirmez l’adresse e-mail pour activer le compte. Une fois vérifiée, cette adresse recevra les droits administrateur complets."
+          ? "Confirmez l’adresse e-mail pour finaliser l’invitation. Les droits restent conditionnés au code d’accès et au rôle administrateur."
           : "Pour éviter qu’un contrôle automatique de votre boîte e-mail n’utilise le lien à votre place, confirmez ici pour continuer."
       : state === "verifying"
         ? "Nous vérifions le lien auprès du service sécurisé. Cette étape peut prendre quelques secondes."
@@ -153,7 +153,7 @@ export function AuthConfirmClient() {
             {isSignupFlow ? (
               <>
                 <h2>Recommencer l’inscription</h2>
-                <p><Link className="text-link" href={`${getAdminBasePath()}/inscription`}>Demander un nouveau lien de confirmation</Link></p>
+                <p><Link className="text-link" href={`${getAdminBasePath()}/sign_up`}>Demander un nouveau lien de confirmation</Link></p>
               </>
             ) : (
               <>

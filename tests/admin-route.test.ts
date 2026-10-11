@@ -17,7 +17,7 @@ describe("canonical admin route", () => {
   it("maps only explicit internal admin paths", () => {
     expect(toPublicAdminPath("/admin")).toBe("/caridja_diallo_admin_principe");
     expect(toPublicAdminPath("/admin/connexion")).toBe("/caridja_diallo_admin_principe/connexion");
-    expect(toPublicAdminPath("/admin/inscription?claim=1")).toBe("/caridja_diallo_admin_principe/inscription?claim=1");
+    expect(toPublicAdminPath("/admin/sign_up?claim=1")).toBe("/caridja_diallo_admin_principe/sign_up?claim=1");
     expect(toPublicAdminPath("/administrator")).toBeNull();
     expect(toPublicAdminPath("https://attacker.example/")).toBeNull();
   });

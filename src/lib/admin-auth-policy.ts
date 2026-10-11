@@ -1,6 +1,6 @@
 const PUBLIC_ADMIN_AUTH_PATHS = new Set([
   "/admin/connexion",
-  "/admin/inscription",
+  "/admin/sign_up",
   "/admin/mot-de-passe-oublie",
   "/admin/reinitialiser-mot-de-passe",
 ]);
