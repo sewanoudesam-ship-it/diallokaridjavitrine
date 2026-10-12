@@ -3,6 +3,7 @@ packages: []
 overrides:
   postcss: 8.5.28
   source-map-js: 1.2.2
+  postcss-selector-parser: 7.1.6
 
 allowBuilds:
   esbuild: true
