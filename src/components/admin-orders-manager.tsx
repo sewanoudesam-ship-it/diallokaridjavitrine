@@ -27,6 +27,23 @@ function formatDate(value: string | null) {
   return Number.isNaN(parsed.getTime()) ? "—" : new Intl.DateTimeFormat("fr-FR", { dateStyle: "medium", timeStyle: "short" }).format(parsed);
 }
 
+function openWhatsAppWindow(): Window | null {
+  const popup = window.open("about:blank", "_blank");
+  if (popup) {
+    try { popup.opener = null; } catch { /* The browser may restrict popup properties. */ }
+  }
+  return popup;
+}
+
+function sendToWhatsAppWindow(popup: Window | null, url?: string) {
+  if (!popup) return;
+  if (!url) {
+    popup.close();
+    return;
+  }
+  try { popup.location.href = url; } catch { popup.close(); }
+}
+
 export function AdminOrdersManager({ orders }: { orders: AdminOrderRecord[] }) {
   const router = useRouter();
   const [actions, setActions] = useState<Record<string, ActionState>>({});
@@ -52,43 +69,48 @@ export function AdminOrdersManager({ orders }: { orders: AdminOrderRecord[] }) {
     }
   }
 
-  async function prepareMessage(orderId: string) {
+  async function prepareMessage(orderId: string, popup: Window | null = null) {
     const client = getSupabaseBrowserClient();
-    if (!client) { update(orderId, { error: "Supabase n’est pas configuré." }); return; }
+    if (!client) { update(orderId, { error: "Supabase n’est pas configuré." }); sendToWhatsAppWindow(popup); return; }
     update(orderId, { busy: true, error: "" });
     const { data, error } = await client.functions.invoke("prepare-whatsapp", { body: { order_id: orderId } });
     if (error || !data?.message_id || !data?.whatsapp_url) {
       update(orderId, { busy: false, error: "L’accès existe, mais le message WhatsApp n’a pas pu être préparé. Réessayez." });
+      sendToWhatsAppWindow(popup);
       return;
     }
     update(orderId, { busy: false, prepared: data as PreparedResult, error: "" });
+    sendToWhatsAppWindow(popup, data.whatsapp_url as string);
     router.refresh();
   }
 
-  async function validatePayment(orderId: string) {
+  async function validatePayment(orderId: string, popup: Window | null = null) {
     const client = getSupabaseBrowserClient();
-    if (!client) { update(orderId, { error: "Supabase n’est pas configuré." }); return; }
+    if (!client) { update(orderId, { error: "Supabase n’est pas configuré." }); sendToWhatsAppWindow(popup); return; }
     update(orderId, { busy: true, error: "", validation: undefined, prepared: undefined });
     const { data, error } = await client.functions.invoke("validate-payment", { body: { order_id: orderId } });
     if (error || !data?.delivery_id || !data?.access_code || !data?.access_link) {
       update(orderId, { busy: false, error: "Le paiement n’a pas été validé. Vérifiez le fichier maître, les secrets et le statut réel du paiement." });
+      sendToWhatsAppWindow(popup);
       return;
     }
     const validation = data as ValidationResult;
     update(orderId, { busy: true, validation, error: "" });
     const { data: prepared, error: prepareError } = await client.functions.invoke("prepare-whatsapp", { body: { order_id: orderId } });
+    const preparedResult = !prepareError && prepared?.message_id && prepared?.whatsapp_url ? prepared as PreparedResult : undefined;
     update(orderId, {
       busy: false,
       validation,
-      prepared: !prepareError && prepared?.message_id ? prepared as PreparedResult : undefined,
-      error: prepareError ? "Paiement validé et accès créé. Le message WhatsApp n’a pas encore été préparé; réessayez avec le bouton ci-dessous." : "",
+      prepared: preparedResult,
+      error: preparedResult ? "" : "Paiement validé et accès créé. Le message WhatsApp n’a pas encore été préparé; réessayez avec le bouton ci-dessous.",
     });
+    sendToWhatsAppWindow(popup, preparedResult?.whatsapp_url);
     router.refresh();
   }
 
   function confirmAndValidatePayment(orderId: string) {
-    if (!window.confirm("Karidja doit avoir vérifié le paiement réel avant de continuer. Confirmer crée l’accès au téléchargement numérique pour cette commande. Continuer ?")) return;
-    void validatePayment(orderId);
+    if (!window.confirm("Vérifiez d’abord le paiement reçu par WhatsApp. Continuer marquera la commande comme payée, créera son accès numérique et ouvrira WhatsApp au numéro fourni par le client. Le message restera à vérifier puis à envoyer manuellement.")) return;
+    void validatePayment(orderId, openWhatsAppWindow());
   }
 
   async function markSent(orderId: string, messageId: string) {
@@ -118,12 +140,13 @@ export function AdminOrdersManager({ orders }: { orders: AdminOrderRecord[] }) {
       {orders.length === 0 ? <p className="notice">Aucune commande réelle n’a encore été reçue.</p> : orders.map((order) => {
         const state = actions[order.id] ?? {};
         const deliveryRevoked = state.revoked || Boolean(order.delivery?.revoked_at);
+        const accessExpired = Boolean(order.delivery && order.delivery.downloaded_count >= order.delivery.max_downloads);
         const visibleCode = state.prepared?.access_code ?? state.validation?.access_code;
         const visibleLink = state.prepared?.access_link ?? state.validation?.access_link;
         return (
           <article className="admin-order-card" key={order.id}>
             <div className="admin-order-heading">
-              <div><span className="eyebrow">{order.order_type === "BOOK" ? "Livre numérique" : "Bijoux"} · {order.payment_status}</span><h3>{order.order_number}</h3></div>
+              <div><span className="eyebrow">{order.order_type === "BOOK" ? "Livre numérique" : "Bijoux"} · {order.payment_status}</span><h3>{order.order_number}</h3><span className="muted">Code unique de commande</span></div>
               <span className="muted">Reçue le {formatDate(order.created_at)}</span>
             </div>
             <div className="admin-order-details">
@@ -133,17 +156,17 @@ export function AdminOrdersManager({ orders }: { orders: AdminOrderRecord[] }) {
             </div>
 
             {order.order_type === "BOOK" && order.payment_status === "PENDING" && order.status !== "CANCELLED" && (
-              <div className="admin-actions-block"><p className="notice">Vérifiez le paiement réellement reçu avant de continuer. La confirmation crée l’accès et le PDF personnalisé; elle ne prélève aucun paiement.</p><button className="button" type="button" disabled={state.busy} onClick={() => confirmAndValidatePayment(order.id)}>{state.busy ? "Vérification…" : "Confirmer le paiement et générer code/lien"}</button></div>
+              <div className="admin-actions-block"><p className="notice">Vérifiez le paiement réellement reçu par WhatsApp avant de continuer. La confirmation marque la commande payée, crée l’accès et le PDF personnalisé, puis ouvre WhatsApp au numéro du client. Aucun paiement n’est prélevé ici.</p><button className="button" type="button" disabled={state.busy} onClick={() => confirmAndValidatePayment(order.id)}>{state.busy ? "Autorisation…" : "Autoriser le client et ouvrir WhatsApp"}</button></div>
             )}
 
             {order.order_type === "BOOK" && order.payment_status === "PAID" && order.delivery && (
               <div className="admin-access-panel">
                 <h4>Accès du livre</h4>
                 <p>Code créé le {formatDate(order.delivery.created_at)} par le compte administrateur <code>{order.delivery.created_by}</code>.</p>
-                <p>Téléchargements réalisés : {order.delivery.downloaded_count} / {order.delivery.max_downloads}{order.delivery.expires_at ? ` · Expire le ${formatDate(order.delivery.expires_at)}` : " · aucune date d’expiration définie"}</p>
+                <p>Téléchargements réalisés : {order.delivery.downloaded_count} / {order.delivery.max_downloads}{accessExpired ? " · Code et lien expirés" : order.delivery.expires_at ? ` · Expire le ${formatDate(order.delivery.expires_at)}` : " · expiration à la limite de deux téléchargements"}</p>
                 {deliveryRevoked ? <p className="form-error">Accès révoqué. Le lien et le code ne sont plus utilisables.</p> : (
                   <div className="admin-actions">
-                    <button className="button button-whatsapp" type="button" disabled={state.busy} onClick={() => void prepareMessage(order.id)}>{state.busy ? "Préparation…" : "Préparer / réafficher le message WhatsApp"}</button>
+                    {!accessExpired && <button className="button button-whatsapp" type="button" disabled={state.busy} onClick={() => void prepareMessage(order.id, openWhatsAppWindow())}>{state.busy ? "Préparation…" : "Réautoriser / ouvrir WhatsApp au client"}</button>}
                     <button className="button button-danger" type="button" disabled={state.busy} onClick={() => void revoke(order.id, order.delivery!.id)}>Révoquer l’accès</button>
                   </div>
                 )}
@@ -153,6 +176,7 @@ export function AdminOrdersManager({ orders }: { orders: AdminOrderRecord[] }) {
             {visibleCode && visibleLink && !deliveryRevoked && (
               <div className="access-generated" aria-live="polite">
                 <strong>Accès client — visible uniquement dans cette session admin</strong>
+                {accessExpired && <p className="form-error">Le code et le lien ont expiré après deux téléchargements (ou à la date d’expiration définie).</p>}
                 {state.validation && <p>Code généré le {formatDate(state.validation.generated_at)} par le compte administrateur <code>{state.validation.generated_by_user_id}</code>.</p>}
                 {state.prepared && <p>Ce code a été créé le {formatDate(state.prepared.code_generated_at)} par le compte administrateur <code>{state.prepared.code_generated_by_user_id}</code>.</p>}
                 <p>Code : <code className="access-code">{visibleCode}</code></p>
@@ -165,14 +189,14 @@ export function AdminOrdersManager({ orders }: { orders: AdminOrderRecord[] }) {
                   {state.copyFeedback?.code && <p className={state.copyFeedback.code.kind === "success" ? "form-success" : "form-error"} role={state.copyFeedback.code.kind === "success" ? "status" : "alert"}>{state.copyFeedback.code.message}</p>}
                   {state.copyFeedback?.link && <p className={state.copyFeedback.link.kind === "success" ? "form-success" : "form-error"} role={state.copyFeedback.link.kind === "success" ? "status" : "alert"}>{state.copyFeedback.link.message}</p>}
                 </div>
-                {state.prepared ? <>
+                {state.prepared && !accessExpired ? <>
                   <p>Message préparé par le compte <code>{state.prepared.prepared_by_user_id}</code> pour {state.prepared.recipient_name} ({state.prepared.recipient_e164}).</p>
                   <label className="field message-preview-label" htmlFor={`message-${order.id}`}>Message prêt à vérifier</label>
                   <textarea id={`message-${order.id}`} className="message-preview" readOnly value={state.prepared.message} />
                   <a className="button button-whatsapp" href={state.prepared.whatsapp_url} target="_blank" rel="noopener noreferrer">Ouvrir WhatsApp avec ce message</a>
                   {!state.sentAt && <button className="button button-secondary" type="button" disabled={state.busy} onClick={() => void markSent(order.id, state.prepared!.message_id)}>J’ai envoyé le message manuellement</button>}
                   {state.sentAt && <p className="form-success">Envoi déclaré manuellement le {formatDate(state.sentAt)} par le compte <code>{state.sentBy}</code>. Cette déclaration n’est pas une vérification fournie par WhatsApp.</p>}
-                </> : <button className="button button-whatsapp" type="button" disabled={state.busy} onClick={() => void prepareMessage(order.id)}>{state.busy ? "Préparation…" : "Réessayer la préparation du message"}</button>}
+                </> : accessExpired ? <p className="notice">L’accès est arrivé à expiration. Aucun lien actif ne peut être renvoyé.</p> : <button className="button button-whatsapp" type="button" disabled={state.busy} onClick={() => void prepareMessage(order.id, openWhatsAppWindow())}>{state.busy ? "Préparation…" : "Réessayer et ouvrir WhatsApp"}</button>}
               </div>
             )}
 

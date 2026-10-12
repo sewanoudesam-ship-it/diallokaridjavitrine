@@ -7,12 +7,14 @@ export function DownloadAccessForm({ initialToken }: { initialToken?: string }) 
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [downloaded, setDownloaded] = useState(false);
+  const [downloadNumber, setDownloadNumber] = useState<number | null>(null);
   const configured = Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError("");
     setDownloaded(false);
+    setDownloadNumber(null);
     if (!configured) { setError("L’accès sécurisé sera disponible après configuration du service."); return; }
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -41,6 +43,9 @@ export function DownloadAccessForm({ initialToken }: { initialToken?: string }) 
       anchor.click();
       anchor.remove();
       window.setTimeout(() => URL.revokeObjectURL(objectUrl), 60_000);
+      const rawDownloadNumber = response.headers.get("X-Download-Number");
+      const parsedDownloadNumber = rawDownloadNumber ? Number(rawDownloadNumber) : NaN;
+      setDownloadNumber(Number.isInteger(parsedDownloadNumber) ? parsedDownloadNumber : null);
       setDownloaded(true);
       setCode("");
     } catch (caught) {
@@ -58,7 +63,11 @@ export function DownloadAccessForm({ initialToken }: { initialToken?: string }) 
         <input id="download-code" autoComplete="one-time-code" maxLength={80} value={code} onChange={(event) => setCode(event.target.value)} required />
       </div>}
       {error && <p className="form-error field-full" role="alert">{error}</p>}
-      {downloaded && <p className="form-success field-full" role="status">Le téléchargement a été préparé. Cet accès autorise au maximum deux téléchargements au total.</p>}
+      {downloaded && downloadNumber === 2 ? (
+        <p className="form-success field-full" role="status">Votre deuxième et dernier téléchargement a été préparé. Le code et le lien d’accès sont maintenant expirés.</p>
+      ) : downloaded ? (
+        <p className="form-success field-full" role="status">Le téléchargement a été préparé. Cet accès autorise au maximum deux téléchargements au total.</p>
+      ) : null}
       <div className="field-full">
         <button className="button" type="submit" disabled={!configured || busy || (!initialToken && !code.trim())}>{busy ? "Vérification…" : "Vérifier et télécharger"}</button>
         <p className="form-note">Un accès valide autorise au maximum deux téléchargements. Le lien et le code sont individuels; ne les partagez pas.</p>
