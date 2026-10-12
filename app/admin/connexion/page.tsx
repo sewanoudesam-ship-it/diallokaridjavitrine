@@ -15,7 +15,7 @@ export default async function AdminLoginPage({ searchParams }: { searchParams: P
       <div className="content-narrow">
         <span className="eyebrow">Espace privé</span>
         <h1 className="display page-title">Connexion administrateur</h1>
-        <p className="muted">Accès réservé aux comptes autorisés. La création d’un compte se fait avec vos prénom, nom et adresse e-mail. Un lien de confirmation est envoyé immédiatement.</p>
+        <p className="muted">L’inscription est ouverte : toute personne qui confirme son adresse e-mail reçoit les droits administrateur. Créez votre compte depuis le lien d’inscription ou connectez-vous ci-dessous.</p>
         {auth === "invalid-link" && <p className="notice" role="status">Le lien de validation est invalide ou expiré. Relancez l’activation ou la récupération de mot de passe.</p>}
         {auth === "unavailable" && <p className="notice" role="status">Le service d’authentification est temporairement indisponible. Réessayez plus tard.</p>}
         <AdminLoginForm adminBasePath={adminBasePath} />

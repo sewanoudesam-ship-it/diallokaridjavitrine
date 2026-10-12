@@ -1,5 +1,5 @@
-export const ADMIN_PUBLIC_BASE_PATH = "/caridja_diallo_admin_principe";
-export const ADMIN_PUBLIC_LEGACY_BASE_PATH = "/Karidja_diallo_admin_principe";
+export const ADMIN_PUBLIC_BASE_PATH = "/Karidja_diallo_admin_principe";
+export const ADMIN_PUBLIC_LEGACY_BASE_PATH = "/caridja_diallo_admin_principe";
 const INTERNAL_ADMIN_BASE_PATH = "/admin";
 
 /** The public admin URL is a locator only; authentication and the admin role remain mandatory. */

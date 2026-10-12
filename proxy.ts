@@ -92,6 +92,11 @@ export async function proxy(request: NextRequest) {
   const isPublicAuthPage = isPublicAdminAuthPath(internalPath);
 
   if (!user && !isPublicAuthPage) {
+    if (internalPath === INTERNAL_ADMIN_BASE_PATH) {
+      internalUrl.pathname = `${INTERNAL_ADMIN_BASE_PATH}/connexion`;
+      return buildPrivateRewrite();
+    }
+
     const loginPath = toPublicAdminPath("/admin/connexion");
     if (!loginPath) return hiddenNotFound();
     const destination = new URL(loginPath, request.url);

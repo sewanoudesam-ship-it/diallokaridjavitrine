@@ -14,7 +14,7 @@ const sections = [
   { slug: "produits", title: "Produits", description: "Vitrine, prix et images publiées" },
   { slug: "commandes", title: "Commandes", description: "Paiements à vérifier et accès" },
   { slug: "reglages", title: "Réglages", description: "Coordonnées et informations légales" },
-  { slug: "comptes", title: "Comptes", description: "Invitations administrateur à usage unique" },
+  { slug: "comptes", title: "Comptes", description: "Gérer les invitations et les accès administrateur" },
 ];
 
 export default async function AdminPage() {
@@ -22,7 +22,7 @@ export default async function AdminPage() {
   if (!adminBasePath) notFound();
   const client = await getSupabaseServerClient();
   if (!client) {
-    return <section className="content-page container"><div className="content-narrow"><span className="eyebrow">Maison Karidja</span><h1 className="display page-title">Administration</h1><p className="notice">L’administration attend la configuration du projet Supabase et l’attribution d’un compte réel à Karidja.</p></div></section>;
+    return <section className="content-page container"><div className="content-narrow"><span className="eyebrow">Maison Karidja</span><h1 className="display page-title">Administration</h1><p className="notice">L’authentification Supabase doit être configurée pour accéder au tableau de bord administrateur.</p></div></section>;
   }
   const { data: { user } } = await client.auth.getUser();
   if (!user) redirect(toPublicAdminPath("/admin/connexion") ?? "/");
