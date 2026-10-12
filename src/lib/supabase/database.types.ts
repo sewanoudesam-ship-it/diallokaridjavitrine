@@ -125,7 +125,6 @@ export type Database = {
       consume_download_rate_limit: { Args: { p_client_ip_hash: string }; Returns: { allowed: boolean; retry_after_seconds: number }[] };
       revoke_book_delivery: { Args: { p_delivery_id: string; p_actor_id: string }; Returns: boolean };
       create_admin_invitation: { Args: { p_email: string; p_code_hash: string }; Returns: string };
-      claim_admin_access: { Args: { p_code_hash: string }; Returns: string };
       validate_admin_access_code: { Args: { p_code_hash: string; p_email: string }; Returns: boolean };
       consume_admin_access_code: { Args: { p_code_hash: string; p_email: string; p_user_id: string }; Returns: string };
     };

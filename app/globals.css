@@ -272,11 +272,15 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .dashboard-legend i { display: inline-block; width: 0.7rem; height: 0.7rem; border-radius: 50%; }
 .legend-orders { background: #806521; }
 .legend-paid { background: #248b54; }
+.legend-books { background: #5f5a91; }
+.legend-jewelry { background: #bd6849; }
 .dashboard-chart { display: block; width: 100%; height: auto; min-height: 150px; overflow: visible; }
 .chart-gridline { stroke: #e4ddce; stroke-width: 1; }
 .chart-line { fill: none; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
 .chart-line-orders { stroke: #806521; }
 .chart-line-paid { stroke: #248b54; }
+.chart-line-books { stroke: #5f5a91; }
+.chart-line-jewelry { stroke: #bd6849; }
 .dashboard-chart-labels { display: flex; justify-content: space-between; padding-inline: 3.2%; color: var(--brand-muted); font-size: 0.75rem; }
 .dashboard-chart-empty { display: grid; min-height: 170px; place-items: center; color: var(--brand-muted); text-align: center; }
 @media (max-width: 980px) { .dashboard-live-cards { grid-template-columns: repeat(3, minmax(0, 1fr)); } }

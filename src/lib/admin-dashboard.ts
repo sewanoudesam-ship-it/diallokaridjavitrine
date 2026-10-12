@@ -1,12 +1,15 @@
 export type DashboardOrder = {
   created_at: string;
   payment_status: string;
+  order_type: string;
 };
 
 export type DailyOrderPoint = {
   day: string;
   orders: number;
   paid: number;
+  books: number;
+  jewelry: number;
 };
 
 export function buildDailyOrderTrend(
@@ -23,7 +26,7 @@ export function buildDailyOrderTrend(
     const date = new Date(firstDay);
     date.setUTCDate(firstDay.getUTCDate() + offset);
     const day = date.toISOString().slice(0, 10);
-    points.set(day, { day, orders: 0, paid: 0 });
+    points.set(day, { day, orders: 0, paid: 0, books: 0, jewelry: 0 });
   }
 
   for (const row of rows) {
@@ -32,6 +35,8 @@ export function buildDailyOrderTrend(
     if (!point) continue;
     point.orders += 1;
     if (row.payment_status === "PAID") point.paid += 1;
+    if (row.order_type === "BOOK") point.books += 1;
+    if (row.order_type === "JEWELRY") point.jewelry += 1;
   }
 
   return [...points.values()];

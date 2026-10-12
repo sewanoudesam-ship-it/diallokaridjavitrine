@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
 
     const [ordersResult, paidCountResult, pendingCountResult, booksResult, productsResult, deliveriesResult, whatsappResult] = await Promise.all([
       client.from("orders")
-        .select("created_at,payment_status", { count: "exact" })
+        .select("created_at,payment_status,order_type", { count: "exact" })
         .gte("created_at", sinceIso)
         .order("created_at", { ascending: false })
         .limit(5000),

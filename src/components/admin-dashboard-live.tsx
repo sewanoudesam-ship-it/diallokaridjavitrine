@@ -14,14 +14,16 @@ type DashboardSnapshot = {
     nonRevokedDeliveries: number;
     whatsappPending: number;
   };
-  trend: { day: string; orders: number; paid: number }[];
+  trend: { day: string; orders: number; paid: number; books: number; jewelry: number }[];
   truncated: boolean;
 };
 
 const numberFormat = new Intl.NumberFormat("fr-FR");
 const dateFormat = new Intl.DateTimeFormat("fr-FR", { day: "2-digit", month: "short", timeZone: "UTC" });
 
-function makeLine(points: DashboardSnapshot["trend"], key: "orders" | "paid", width: number, height: number, max: number): string {
+type TrendKey = "orders" | "paid" | "books" | "jewelry";
+
+function makeLine(points: DashboardSnapshot["trend"], key: TrendKey, width: number, height: number, max: number): string {
   const left = 24;
   const top = 16;
   const plotWidth = width - left * 2;
@@ -31,6 +33,26 @@ function makeLine(points: DashboardSnapshot["trend"], key: "orders" | "paid", wi
     const y = top + plotHeight - (point[key] / max) * plotHeight;
     return `${index === 0 ? "M" : "L"}${x.toFixed(1)},${y.toFixed(1)}`;
   }).join(" ");
+}
+
+function ChartGrid() {
+  return (
+    <>
+      <line x1="24" y1="20" x2="736" y2="20" className="chart-gridline" />
+      <line x1="24" y1="117" x2="736" y2="117" className="chart-gridline" />
+      <line x1="24" y1="214" x2="736" y2="214" className="chart-gridline" />
+    </>
+  );
+}
+
+function ChartLabels({ trend }: { trend: DashboardSnapshot["trend"] }) {
+  return (
+    <div className="dashboard-chart-labels">
+      {trend.filter((_, index) => index === 0 || index === Math.floor((trend.length - 1) / 2) || index === trend.length - 1).map((point) => (
+        <span key={point.day}>{dateFormat.format(new Date(`${point.day}T12:00:00Z`))}</span>
+      ))}
+    </div>
+  );
 }
 
 export function AdminDashboardLive({ adminBasePath }: { adminBasePath: string }) {
@@ -119,21 +141,33 @@ export function AdminDashboardLive({ adminBasePath }: { adminBasePath: string })
               <>
                 <div className="dashboard-legend"><span><i className="legend-orders" />Commandes</span><span><i className="legend-paid" />Payées</span></div>
                 <svg className="dashboard-chart" viewBox="0 0 760 250" role="img" aria-label={`Graphique des commandes et paiements confirmés sur ${days} jours`}>
-                  <line x1="24" y1="20" x2="736" y2="20" className="chart-gridline" />
-                  <line x1="24" y1="117" x2="736" y2="117" className="chart-gridline" />
-                  <line x1="24" y1="214" x2="736" y2="214" className="chart-gridline" />
+                  <ChartGrid />
                   <path d={makeLine(snapshot.trend, "orders", 760, 250, maxValue)} className="chart-line chart-line-orders" />
                   <path d={makeLine(snapshot.trend, "paid", 760, 250, maxValue)} className="chart-line chart-line-paid" />
                 </svg>
-                <div className="dashboard-chart-labels">
-                  {snapshot.trend.filter((_, index) => index === 0 || index === Math.floor((snapshot.trend.length - 1) / 2) || index === snapshot.trend.length - 1).map((point) => (
-                    <span key={point.day}>{dateFormat.format(new Date(`${point.day}T12:00:00Z`))}</span>
-                  ))}
-                </div>
+                <ChartLabels trend={snapshot.trend} />
               </>
             )}
-            {snapshot.truncated && <p className="form-note">Le graphique est limité aux 5 000 commandes les plus récentes de la période.</p>}
           </div>
+          <div className="dashboard-chart-panel">
+            <div className="dashboard-chart-heading">
+              <div><h3>Commandes par service</h3><p className="muted">Livres et bijoux · {days} derniers jours</p></div>
+            </div>
+            {snapshot.trend.every((point) => point.books === 0 && point.jewelry === 0) ? (
+              <div className="dashboard-chart-empty">Aucune commande par service sur cette période.</div>
+            ) : (
+              <>
+                <div className="dashboard-legend"><span><i className="legend-books" />Livres</span><span><i className="legend-jewelry" />Bijoux</span></div>
+                <svg className="dashboard-chart" viewBox="0 0 760 250" role="img" aria-label={`Graphique des commandes de livres et bijoux sur ${days} jours`}>
+                  <ChartGrid />
+                  <path d={makeLine(snapshot.trend, "books", 760, 250, maxValue)} className="chart-line chart-line-books" />
+                  <path d={makeLine(snapshot.trend, "jewelry", 760, 250, maxValue)} className="chart-line chart-line-jewelry" />
+                </svg>
+                <ChartLabels trend={snapshot.trend} />
+              </>
+            )}
+          </div>
+          {snapshot.truncated && <p className="form-note">Les graphiques sont limités aux 5 000 commandes les plus récentes de la période.</p>}
         </>
       )}
     </section>
