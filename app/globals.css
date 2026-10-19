@@ -270,8 +270,12 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .dashboard-legend { display: flex; gap: 1.2rem; margin-top: 1rem; color: var(--brand-muted); font-size: 0.82rem; }
 .dashboard-legend span { display: inline-flex; align-items: center; gap: 0.45rem; }
 .dashboard-legend i { display: inline-block; width: 0.7rem; height: 0.7rem; border-radius: 50%; }
+.dashboard-legend-wrap { flex-wrap: wrap; }
 .legend-orders { background: #806521; }
 .legend-paid { background: #248b54; }
+.legend-pending { background: #c29410; }
+.legend-rejected { background: #bd3939; }
+.legend-refunded { background: #5273a1; }
 .legend-books { background: #5f5a91; }
 .legend-jewelry { background: #bd6849; }
 .dashboard-chart { display: block; width: 100%; height: auto; min-height: 150px; overflow: visible; }
@@ -279,6 +283,9 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .chart-line { fill: none; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
 .chart-line-orders { stroke: #806521; }
 .chart-line-paid { stroke: #248b54; }
+.chart-line-pending { stroke: #c29410; stroke-dasharray: 5 4; }
+.chart-line-rejected { stroke: #bd3939; stroke-dasharray: 8 4; }
+.chart-line-refunded { stroke: #5273a1; stroke-dasharray: 2 5; }
 .chart-line-books { stroke: #5f5a91; }
 .chart-line-jewelry { stroke: #bd6849; }
 .dashboard-chart-labels { display: flex; justify-content: space-between; padding-inline: 3.2%; color: var(--brand-muted); font-size: 0.75rem; }

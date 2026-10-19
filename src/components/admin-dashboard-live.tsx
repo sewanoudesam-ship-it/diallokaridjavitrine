@@ -14,14 +14,23 @@ type DashboardSnapshot = {
     nonRevokedDeliveries: number;
     whatsappPending: number;
   };
-  trend: { day: string; orders: number; paid: number; books: number; jewelry: number }[];
+  trend: {
+    day: string;
+    orders: number;
+    paid: number;
+    pending: number;
+    rejected: number;
+    refunded: number;
+    books: number;
+    jewelry: number;
+  }[];
   truncated: boolean;
 };
 
 const numberFormat = new Intl.NumberFormat("fr-FR");
 const dateFormat = new Intl.DateTimeFormat("fr-FR", { day: "2-digit", month: "short", timeZone: "UTC" });
 
-type TrendKey = "orders" | "paid" | "books" | "jewelry";
+type TrendKey = "orders" | "paid" | "pending" | "rejected" | "refunded" | "books" | "jewelry";
 
 function makeLine(points: DashboardSnapshot["trend"], key: TrendKey, width: number, height: number, max: number): string {
   const left = 24;
@@ -88,6 +97,10 @@ export function AdminDashboardLive({ adminBasePath }: { adminBasePath: string })
   }, [adminBasePath, days]);
 
   const maxValue = useMemo(() => Math.max(1, ...(snapshot?.trend.map((point) => point.orders) ?? [])), [snapshot]);
+  const maxPaymentValue = useMemo(() => Math.max(
+    1,
+    ...(snapshot?.trend.map((point) => Math.max(point.paid, point.pending, point.rejected, point.refunded)) ?? []),
+  ), [snapshot]);
   const updatedAt = snapshot ? new Date(snapshot.updatedAt) : null;
   const cards = snapshot ? [
     { label: `Commandes (${days} j)`, value: snapshot.totals.orders, note: `${snapshot.totals.paidOrders} payées` },
@@ -162,6 +175,31 @@ export function AdminDashboardLive({ adminBasePath }: { adminBasePath: string })
                   <ChartGrid />
                   <path d={makeLine(snapshot.trend, "books", 760, 250, maxValue)} className="chart-line chart-line-books" />
                   <path d={makeLine(snapshot.trend, "jewelry", 760, 250, maxValue)} className="chart-line chart-line-jewelry" />
+                </svg>
+                <ChartLabels trend={snapshot.trend} />
+              </>
+            )}
+          </div>
+          <div className="dashboard-chart-panel">
+            <div className="dashboard-chart-heading">
+              <div><h3>État des paiements</h3><p className="muted">Confirmés, en attente, rejetés et remboursés · {days} derniers jours</p></div>
+            </div>
+            {snapshot.trend.every((point) => point.paid === 0 && point.pending === 0 && point.rejected === 0 && point.refunded === 0) ? (
+              <div className="dashboard-chart-empty">Aucun paiement enregistré sur cette période.</div>
+            ) : (
+              <>
+                <div className="dashboard-legend dashboard-legend-wrap">
+                  <span><i className="legend-paid" />Payés</span>
+                  <span><i className="legend-pending" />En attente</span>
+                  <span><i className="legend-rejected" />Rejetés</span>
+                  <span><i className="legend-refunded" />Remboursés</span>
+                </div>
+                <svg className="dashboard-chart" viewBox="0 0 760 250" role="img" aria-label={`Graphique des paiements par statut sur ${days} jours`}>
+                  <ChartGrid />
+                  <path d={makeLine(snapshot.trend, "paid", 760, 250, maxPaymentValue)} className="chart-line chart-line-paid" />
+                  <path d={makeLine(snapshot.trend, "pending", 760, 250, maxPaymentValue)} className="chart-line chart-line-pending" />
+                  <path d={makeLine(snapshot.trend, "rejected", 760, 250, maxPaymentValue)} className="chart-line chart-line-rejected" />
+                  <path d={makeLine(snapshot.trend, "refunded", 760, 250, maxPaymentValue)} className="chart-line chart-line-refunded" />
                 </svg>
                 <ChartLabels trend={snapshot.trend} />
               </>
