@@ -44,6 +44,49 @@ function makeLine(points: DashboardSnapshot["trend"], key: TrendKey, width: numb
   }).join(" ");
 }
 
+const trendLabels: Record<TrendKey, string> = {
+  orders: "commandes",
+  paid: "paiements payés",
+  pending: "paiements en attente",
+  rejected: "paiements rejetés",
+  refunded: "paiements remboursés",
+  books: "commandes de livres",
+  jewelry: "commandes de bijoux",
+};
+
+function ChartSeries({
+  trend,
+  metric,
+  max,
+}: {
+  trend: DashboardSnapshot["trend"];
+  metric: TrendKey;
+  max: number;
+}) {
+  const width = 760;
+  const height = 250;
+  const left = 24;
+  const top = 16;
+  const plotWidth = width - left * 2;
+  const plotHeight = height - top - 28;
+
+  return (
+    <>
+      <path d={makeLine(trend, metric, width, height, max)} className={`chart-line chart-line-${metric}`} />
+      {trend.map((point, index) => {
+        const x = left + (trend.length <= 1 ? 0 : (index / (trend.length - 1)) * plotWidth);
+        const y = top + plotHeight - (point[metric] / max) * plotHeight;
+        const date = dateFormat.format(new Date(`${point.day}T12:00:00Z`));
+        return (
+          <circle key={point.day} cx={x} cy={y} r="3.25" className={`chart-point chart-point-${metric}`}>
+            <title>{`${date}: ${numberFormat.format(point[metric])} ${trendLabels[metric]}`}</title>
+          </circle>
+        );
+      })}
+    </>
+  );
+}
+
 function ChartGrid() {
   return (
     <>
@@ -155,8 +198,8 @@ export function AdminDashboardLive({ adminBasePath }: { adminBasePath: string })
                 <div className="dashboard-legend"><span><i className="legend-orders" />Commandes</span><span><i className="legend-paid" />Payées</span></div>
                 <svg className="dashboard-chart" viewBox="0 0 760 250" role="img" aria-label={`Graphique des commandes et paiements confirmés sur ${days} jours`}>
                   <ChartGrid />
-                  <path d={makeLine(snapshot.trend, "orders", 760, 250, maxValue)} className="chart-line chart-line-orders" />
-                  <path d={makeLine(snapshot.trend, "paid", 760, 250, maxValue)} className="chart-line chart-line-paid" />
+                  <ChartSeries trend={snapshot.trend} metric="orders" max={maxValue} />
+                  <ChartSeries trend={snapshot.trend} metric="paid" max={maxValue} />
                 </svg>
                 <ChartLabels trend={snapshot.trend} />
               </>
@@ -173,8 +216,8 @@ export function AdminDashboardLive({ adminBasePath }: { adminBasePath: string })
                 <div className="dashboard-legend"><span><i className="legend-books" />Livres</span><span><i className="legend-jewelry" />Bijoux</span></div>
                 <svg className="dashboard-chart" viewBox="0 0 760 250" role="img" aria-label={`Graphique des commandes de livres et bijoux sur ${days} jours`}>
                   <ChartGrid />
-                  <path d={makeLine(snapshot.trend, "books", 760, 250, maxValue)} className="chart-line chart-line-books" />
-                  <path d={makeLine(snapshot.trend, "jewelry", 760, 250, maxValue)} className="chart-line chart-line-jewelry" />
+                  <ChartSeries trend={snapshot.trend} metric="books" max={maxValue} />
+                  <ChartSeries trend={snapshot.trend} metric="jewelry" max={maxValue} />
                 </svg>
                 <ChartLabels trend={snapshot.trend} />
               </>
@@ -196,10 +239,10 @@ export function AdminDashboardLive({ adminBasePath }: { adminBasePath: string })
                 </div>
                 <svg className="dashboard-chart" viewBox="0 0 760 250" role="img" aria-label={`Graphique des paiements par statut sur ${days} jours`}>
                   <ChartGrid />
-                  <path d={makeLine(snapshot.trend, "paid", 760, 250, maxPaymentValue)} className="chart-line chart-line-paid" />
-                  <path d={makeLine(snapshot.trend, "pending", 760, 250, maxPaymentValue)} className="chart-line chart-line-pending" />
-                  <path d={makeLine(snapshot.trend, "rejected", 760, 250, maxPaymentValue)} className="chart-line chart-line-rejected" />
-                  <path d={makeLine(snapshot.trend, "refunded", 760, 250, maxPaymentValue)} className="chart-line chart-line-refunded" />
+                  <ChartSeries trend={snapshot.trend} metric="paid" max={maxPaymentValue} />
+                  <ChartSeries trend={snapshot.trend} metric="pending" max={maxPaymentValue} />
+                  <ChartSeries trend={snapshot.trend} metric="rejected" max={maxPaymentValue} />
+                  <ChartSeries trend={snapshot.trend} metric="refunded" max={maxPaymentValue} />
                 </svg>
                 <ChartLabels trend={snapshot.trend} />
               </>
