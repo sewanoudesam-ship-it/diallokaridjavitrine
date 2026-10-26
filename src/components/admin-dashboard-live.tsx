@@ -24,11 +24,20 @@ type DashboardSnapshot = {
     books: number;
     jewelry: number;
   }[];
+  revenueTrend: {
+    currency: string;
+    points: { day: string; amount: number }[];
+  }[];
   truncated: boolean;
 };
 
 const numberFormat = new Intl.NumberFormat("fr-FR");
 const dateFormat = new Intl.DateTimeFormat("fr-FR", { day: "2-digit", month: "short", timeZone: "UTC" });
+const currencyFormat = (currency: string) => new Intl.NumberFormat("fr-FR", {
+  style: "currency",
+  currency,
+  maximumFractionDigits: 2,
+});
 
 type TrendKey = "orders" | "paid" | "pending" | "rejected" | "refunded" | "books" | "jewelry";
 
@@ -40,6 +49,18 @@ function makeLine(points: DashboardSnapshot["trend"], key: TrendKey, width: numb
   return points.map((point, index) => {
     const x = left + (points.length <= 1 ? 0 : (index / (points.length - 1)) * plotWidth);
     const y = top + plotHeight - (point[key] / max) * plotHeight;
+    return `${index === 0 ? "M" : "L"}${x.toFixed(1)},${y.toFixed(1)}`;
+  }).join(" ");
+}
+
+function makeRevenueLine(points: DashboardSnapshot["revenueTrend"][number]["points"], width: number, height: number, max: number): string {
+  const left = 24;
+  const top = 16;
+  const plotWidth = width - left * 2;
+  const plotHeight = height - top - 28;
+  return points.map((point, index) => {
+    const x = left + (points.length <= 1 ? 0 : (index / (points.length - 1)) * plotWidth);
+    const y = top + plotHeight - (point.amount / max) * plotHeight;
     return `${index === 0 ? "M" : "L"}${x.toFixed(1)},${y.toFixed(1)}`;
   }).join(" ");
 }
@@ -97,12 +118,55 @@ function ChartGrid() {
   );
 }
 
-function ChartLabels({ trend }: { trend: DashboardSnapshot["trend"] }) {
+function ChartLabels({ trend }: { trend: { day: string }[] }) {
   return (
     <div className="dashboard-chart-labels">
       {trend.filter((_, index) => index === 0 || index === Math.floor((trend.length - 1) / 2) || index === trend.length - 1).map((point) => (
         <span key={point.day}>{dateFormat.format(new Date(`${point.day}T12:00:00Z`))}</span>
       ))}
+    </div>
+  );
+}
+
+function RevenueChart({
+  currency,
+  points,
+  colorIndex,
+}: {
+  currency: string;
+  points: DashboardSnapshot["revenueTrend"][number]["points"];
+  colorIndex: number;
+}) {
+  const max = Math.max(1, ...points.map((point) => point.amount));
+  const formatter = currencyFormat(currency);
+  const width = 760;
+  const height = 250;
+  const left = 24;
+  const top = 16;
+  const plotWidth = width - left * 2;
+  const plotHeight = height - top - 28;
+
+  return (
+    <div className="dashboard-revenue-series">
+      <div className="dashboard-chart-heading">
+        <div><h3>Revenus confirmés · {currency}</h3><p className="muted">Montants encaissés par date de paiement · échelle distincte pour cette devise</p></div>
+      </div>
+      <div className="dashboard-legend"><span><i className={`legend-revenue-${colorIndex % 4}`} />Revenus payés ({currency})</span></div>
+      <svg className="dashboard-chart" viewBox="0 0 760 250" role="img" aria-label={`Graphique des revenus confirmés en ${currency}`}>
+        <ChartGrid />
+        <path d={makeRevenueLine(points, width, height, max)} className={`chart-line chart-line-revenue-${colorIndex % 4}`} />
+        {points.map((point, index) => {
+          const x = left + (points.length <= 1 ? 0 : (index / (points.length - 1)) * plotWidth);
+          const y = top + plotHeight - (point.amount / max) * plotHeight;
+          const date = dateFormat.format(new Date(`${point.day}T12:00:00Z`));
+          return (
+            <circle key={point.day} cx={x} cy={y} r="3.25" className={`chart-point chart-point-revenue-${colorIndex % 4}`}>
+              <title>{`${date}: ${formatter.format(point.amount)}`}</title>
+            </circle>
+          );
+        })}
+      </svg>
+      <ChartLabels trend={points} />
     </div>
   );
 }
@@ -248,7 +312,21 @@ export function AdminDashboardLive({ adminBasePath }: { adminBasePath: string })
               </>
             )}
           </div>
-          {snapshot.truncated && <p className="form-note">Les graphiques sont limités aux 5 000 commandes les plus récentes de la période.</p>}
+          <div className="dashboard-chart-panel">
+            <div className="dashboard-chart-heading">
+              <div><h3>Revenus confirmés</h3><p className="muted">Somme des commandes payées, séparée par devise · {days} derniers jours</p></div>
+            </div>
+            {snapshot.revenueTrend.length === 0 ? (
+              <div className="dashboard-chart-empty">Aucun revenu confirmé sur cette période.</div>
+            ) : (
+              <div className="dashboard-revenue-charts">
+                {snapshot.revenueTrend.map((series, index) => (
+                  <RevenueChart key={series.currency} currency={series.currency} points={series.points} colorIndex={index} />
+                ))}
+              </div>
+            )}
+          </div>
+          {snapshot.truncated && <p className="form-note">Au-delà de 5 000 enregistrements, les graphiques utilisent les lignes les plus récentes de la période.</p>}
         </>
       )}
     </section>

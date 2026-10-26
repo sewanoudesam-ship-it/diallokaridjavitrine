@@ -278,6 +278,13 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .legend-refunded { background: #5273a1; }
 .legend-books { background: #5f5a91; }
 .legend-jewelry { background: #bd6849; }
+.legend-revenue-0 { background: #176b72; }
+.legend-revenue-1 { background: #8054a1; }
+.legend-revenue-2 { background: #a44b32; }
+.legend-revenue-3 { background: #3d6590; }
+.dashboard-revenue-charts { display: grid; gap: 1rem; margin-top: 1rem; }
+.dashboard-revenue-series { border-top: 1px solid var(--brand-line); padding-top: 1rem; }
+.dashboard-revenue-series:first-child { border-top: 0; padding-top: 0; }
 .dashboard-chart { display: block; width: 100%; height: auto; min-height: 150px; overflow: visible; }
 .chart-gridline { stroke: #e4ddce; stroke-width: 1; }
 .chart-line { fill: none; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
@@ -296,6 +303,14 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .chart-point-refunded { fill: #5273a1; }
 .chart-point-books { fill: #5f5a91; }
 .chart-point-jewelry { fill: #bd6849; }
+.chart-line-revenue-0 { stroke: #176b72; }
+.chart-line-revenue-1 { stroke: #8054a1; }
+.chart-line-revenue-2 { stroke: #a44b32; }
+.chart-line-revenue-3 { stroke: #3d6590; }
+.chart-point-revenue-0 { fill: #176b72; }
+.chart-point-revenue-1 { fill: #8054a1; }
+.chart-point-revenue-2 { fill: #a44b32; }
+.chart-point-revenue-3 { fill: #3d6590; }
 .dashboard-chart-labels { display: flex; justify-content: space-between; padding-inline: 3.2%; color: var(--brand-muted); font-size: 0.75rem; }
 .dashboard-chart-empty { display: grid; min-height: 170px; place-items: center; color: var(--brand-muted); text-align: center; }
 @media (max-width: 980px) { .dashboard-live-cards { grid-template-columns: repeat(3, minmax(0, 1fr)); } }

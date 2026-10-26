@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { buildDailyOrderTrend } from "@/src/lib/admin-dashboard";
+import { buildDailyOrderTrend, buildDailyRevenueTrend } from "@/src/lib/admin-dashboard";
 import { getSupabaseServerClient } from "@/src/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -39,11 +39,17 @@ export async function GET(request: NextRequest) {
     since.setUTCDate(today.getUTCDate() - days + 1);
     const sinceIso = since.toISOString();
 
-    const [ordersResult, paidCountResult, pendingCountResult, booksResult, productsResult, deliveriesResult, whatsappResult] = await Promise.all([
+    const [ordersResult, revenueOrdersResult, paidCountResult, pendingCountResult, booksResult, productsResult, deliveriesResult, whatsappResult] = await Promise.all([
       client.from("orders")
         .select("created_at,payment_status,order_type", { count: "exact" })
         .gte("created_at", sinceIso)
         .order("created_at", { ascending: false })
+        .limit(5000),
+      client.from("orders")
+        .select("created_at,paid_at,payment_status,order_type,total_amount,currency", { count: "exact" })
+        .eq("payment_status", "PAID")
+        .or(`paid_at.gte.${sinceIso},and(paid_at.is.null,created_at.gte.${sinceIso})`)
+        .order("paid_at", { ascending: false, nullsFirst: false })
         .limit(5000),
       client.from("orders").select("id", { count: "exact", head: true }).gte("created_at", sinceIso).eq("payment_status", "PAID"),
       client.from("orders").select("id", { count: "exact", head: true }).gte("created_at", sinceIso).eq("payment_status", "PENDING"),
@@ -53,7 +59,7 @@ export async function GET(request: NextRequest) {
       client.from("whatsapp_messages").select("id", { count: "exact", head: true }).is("sent_at", null),
     ]);
 
-    if (ordersResult.error || paidCountResult.error || pendingCountResult.error || booksResult.error || productsResult.error || deliveriesResult.error || whatsappResult.error) {
+    if (ordersResult.error || revenueOrdersResult.error || paidCountResult.error || pendingCountResult.error || booksResult.error || productsResult.error || deliveriesResult.error || whatsappResult.error) {
       return json({ error: "METRICS_UNAVAILABLE" }, 503);
     }
 
@@ -72,7 +78,8 @@ export async function GET(request: NextRequest) {
         whatsappPending: whatsappResult.count ?? 0,
       },
       trend: buildDailyOrderTrend(orders, days, now),
-      truncated: (ordersResult.count ?? 0) > orders.length,
+      revenueTrend: buildDailyRevenueTrend(revenueOrdersResult.data ?? [], days, now),
+      truncated: (ordersResult.count ?? 0) > orders.length || (revenueOrdersResult.count ?? 0) > (revenueOrdersResult.data?.length ?? 0),
     });
   } catch {
     return json({ error: "METRICS_UNAVAILABLE" }, 503);
